@@ -1,0 +1,16 @@
+{% extends 'partials/full_layout.html' %}
+{% block title %}Crear Nou Curs{% endblock %}
+{% block content %}
+<h2>Crear Nou Curs</h2>
+<form method="POST" action="{{ url_for('professors.create_course') }}">
+    <div>
+        <label for="course_name">Nom del curs:</label>
+        <input type="text" name="course_name" id="course_name" required>
+    </div>
+    <div>
+        <label for="description">Descripció:</label>
+        <textarea name="description" id="description"></textarea>
+    </div>
+    <button type="submit">Crear Curs</button>
+</form>
+{% endblock %}

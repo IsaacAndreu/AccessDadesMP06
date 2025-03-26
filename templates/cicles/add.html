@@ -1,0 +1,18 @@
+{% extends 'partials/full_layout.html' %}
+{% block title %}Afegir Cicle{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Afegir Cicle</h2>
+    <form method="POST" action="{{ url_for('cicles.add_cicle') }}">
+        <div>
+            <label for="nom">Nom del Cicle:</label>
+            <input type="text" name="nom" id="nom" required>
+        </div>
+        <div>
+            <label for="descripcio">Descripció:</label>
+            <textarea name="descripcio" id="descripcio"></textarea>
+        </div>
+        <button type="submit" class="btn">Crear Cicle</button>
+    </form>
+</div>
+{% endblock %}

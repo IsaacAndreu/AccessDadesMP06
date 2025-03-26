@@ -1,0 +1,18 @@
+{% extends 'partials/full_layout.html' %}
+{% block title %}Editar Cicle{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Editar Cicle</h2>
+    <form method="POST" action="{{ url_for('cicles.edit_cicle', id=cicle._id) }}">
+        <div>
+            <label for="nom">Nom del Cicle:</label>
+            <input type="text" name="nom" id="nom" value="{{ cicle.nom }}" required>
+        </div>
+        <div>
+            <label for="descripcio">Descripció:</label>
+            <textarea name="descripcio" id="descripcio">{{ cicle.descripcio }}</textarea>
+        </div>
+        <button type="submit" class="btn">Desar Canvis</button>
+    </form>
+</div>
+{% endblock %}

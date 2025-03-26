@@ -1,0 +1,42 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Llista d'Alumnes{% endblock %}
+{% block content %}
+<h2>Llista d'Alumnes</h2>
+<!-- Ex. botó de Filtrar o Afegir Alumne... -->
+
+<div class="table-container">
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Grup</th>
+        <th>Cicle</th>
+        <th>Curs</th>
+        <th>Accions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in alumnes %}
+      <tr>
+        <td>{{ a.nom }} {{ a.cognoms }}</td>
+        <td>{{ a.email }}</td>
+        <td>
+          {{ grups_dict.get(a.grup, a.grup) }}
+        </td>
+        <td>
+          {{ cicles_dict.get(a.cicle_id|string, "N/D") }}
+        </td>
+        <td>{{ a.curs }}</td>
+        <td>
+          <a href="{{ url_for('alumnes.edit_alumne', id=a._id) }}" class="btn-edit">Editar</a>
+          <form action="{{ url_for('alumnes.delete_alumne', id=a._id) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn-delete">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

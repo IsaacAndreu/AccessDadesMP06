@@ -1,0 +1,46 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Llista d'Assignatures{% endblock %}
+
+{% block content %}
+<h2>Llista d'Assignatures</h2>
+<a href="{{ url_for('assignatures.add_assignatura') }}" class="btn">Afegir Assignatura</a>
+<table class="styled-table">
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Descripció</th>
+      <th>RAs</th>
+      <th>Cursos</th>
+      <th>Accions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for assignatura in assignatures %}
+      <tr>
+        <td>{{ assignatura.nom }}</td>
+        <td>{{ assignatura.descripcio or 'Sense descripció' }}</td>
+        <td>
+          <ul>
+            {% for ra in assignatura.ras %}
+              <li>{{ ra.nom }} ({{ ra.ponderacio }}%)</li>
+            {% endfor %}
+          </ul>
+        </td>
+        <td>
+          <ul>
+            {% for course_id in assignatura.courses %}
+              <li>{{ cursos_dict.get(course_id, 'Curs desconegut') }}</li>
+            {% endfor %}
+          </ul>
+        </td>
+        <td>
+          <a href="{{ url_for('assignatures.edit_assignatura', id=assignatura._id) }}" class="btn-edit">Editar</a>
+          <form action="{{ url_for('assignatures.delete_assignatura', id=assignatura._id) }}" method="post" style="display:inline;">
+            <button type="submit" class="btn-delete">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

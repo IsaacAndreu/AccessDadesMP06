@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block layout %}
+<nav class="navbar">
+    <ul class="nav-list">
+        <li><a href="{{ url_for('professors.dashboard') }}">Inici</a></li>
+        <li><a href="#">Notícies</a></li>
+        <li><a href="#">Perfils</a></li>
+    </ul>
+    <ul class="nav-list">
+        <li><a href="{{ url_for('auth.logout') }}" class="logout">Sortir</a></li>
+    </ul>
+</nav>
+
+<div class="layout-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Dashboard</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('professors.llista_cursos') }}">Cursos</a></li>
+            <li><a href="{{ url_for('alumnes.llista_alumnes') }}">Alumnes</a></li>
+            <li><a href="{{ url_for('assignatures.llista_assignatures') }}">Assignatures</a></li>
+            <li><a href="{{ url_for('cicles.llista_cicles') }}">Cicles</a></li>
+            <li><a href="{{ url_for('professors.view_notes') }}">Notes</a></li>
+            <li><a href="{{ url_for('professors.llista_professors') }}">Professors</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+      <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+</div>
+{% endblock %}

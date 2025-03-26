@@ -1,0 +1,16 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Editar Curs{% endblock %}
+{% block content %}
+<h2>Editar Curs</h2>
+<form method="POST" action="{{ url_for('professors.edit_course', course_id=course._id) }}">
+    <div>
+        <label for="course_name">Nom del Curs:</label>
+        <input type="text" name="course_name" id="course_name" required value="{{ course.course_name }}">
+    </div>
+    <div>
+        <label for="description">Descripció:</label>
+        <textarea name="description" id="description">{{ course.description }}</textarea>
+    </div>
+    <button type="submit" class="btn-edit">Desar Canvis</button>
+</form>
+{% endblock %}

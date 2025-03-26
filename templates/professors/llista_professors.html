@@ -1,0 +1,38 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Professors{% endblock %}
+{% block content %}
+<h2>Gestió de Professors</h2>
+<a href="{{ url_for('professors.add_professor') }}" class="btn">Afegir Professor</a>
+
+{% if professors %}
+<div class="table-container">
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Cognoms</th>
+        <th>Email</th>
+        <th>Accions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in professors %}
+      <tr>
+        <td>{{ p.nom }}</td>
+        <td>{{ p.cognoms }}</td>
+        <td>{{ p.email }}</td>
+        <td>
+          <a href="{{ url_for('professors.edit_professor', prof_id=p._id) }}" class="btn-edit">Editar</a>
+          <form action="{{ url_for('professors.delete_professor', prof_id=p._id) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn-delete">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>No hi ha professors registrats.</p>
+{% endif %}
+{% endblock %}

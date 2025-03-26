@@ -1,0 +1,40 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2>Les meves assignatures</h2>
+
+{% if assignatures %}
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Cicle</th>
+        <th>Grups</th>
+        <th>Curs</th>
+        <th>Accions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in assignatures %}
+      <tr>
+        <td>{{ a.nom }}</td>
+        <td>
+          {{ cicles_dict.get(a.cicle_id|string, 'N/D') }}
+        </td>
+        <td>{{ a.grups | join(', ') }}</td>
+        <td>{{ a.curs | join(', ') }}</td>
+        <td>
+          <a href="{{ url_for('assignatures.edit_assignatura', id=a._id) }}" class="btn-edit">Editar</a>
+          <form action="{{ url_for('assignatures.delete_assignatura', id=a._id) }}" method="post" style="display:inline">
+            <button class="btn-delete">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No tens cap assignatura assignada.</p>
+{% endif %}
+{% endblock %}

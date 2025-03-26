@@ -1,0 +1,40 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Cursos{% endblock %}
+
+{% block content %}
+<h2>Gestió de Cursos</h2>
+
+<a href="{{ url_for('professors.create_course') }}" class="btn">Afegir Curs</a>
+
+{% if cursos %}
+<div class="table-container">
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Nom del Curs</th>
+        <th>Descripció</th>
+        <th>Accions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in cursos %}
+      <tr>
+        <td>{{ c.course_name }}</td>
+        <td>{{ c.description or "Sense descripció" }}</td>
+        <td>
+          <!-- Botó Editar -->
+          <a href="{{ url_for('professors.edit_course', course_id=c._id) }}" class="btn-edit">Editar</a>
+          <!-- Botó Eliminar, fem un form POST -->
+          <form action="{{ url_for('professors.delete_course', course_id=c._id) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn-delete">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>No hi ha cursos creats encara.</p>
+{% endif %}
+{% endblock %}

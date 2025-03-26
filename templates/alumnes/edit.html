@@ -1,0 +1,53 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Editar Alumne{% endblock %}
+{% block content %}
+<h2>Editar Alumne</h2>
+<form method="POST" action="{{ url_for('alumnes.edit_alumne', id=alumne._id) }}">
+  <div>
+    <label for="nom">Nom:</label>
+    <input type="text" name="nom" id="nom" value="{{ alumne.nom }}" required>
+  </div>
+  <div>
+    <label for="cognoms">Cognoms:</label>
+    <input type="text" name="cognoms" id="cognoms" value="{{ alumne.cognoms }}" required>
+  </div>
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" name="email" id="email" value="{{ alumne.email }}">
+  </div>
+  <!-- Desplegable per seleccionar el grup -->
+  <div>
+    <label for="grup">Grup:</label>
+    <select name="grup" id="grup" required>
+      <option value="">-- Selecciona un grup --</option>
+      {% for g in grups %}
+        <option value="{{ g._id }}" {% if alumne.grup == g._id|string %}selected{% endif %}>
+          {{ g.nom }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <!-- Desplegable per seleccionar el cicle -->
+  <div>
+    <label for="cicle_id">Cicle:</label>
+    <select name="cicle_id" id="cicle_id" required>
+      <option value="">-- Selecciona un cicle --</option>
+      {% for cicle in cicles %}
+        <option value="{{ cicle._id }}" {% if alumne.cicle_id|string == cicle._id|string %}selected{% endif %}>
+          {{ cicle.nom }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <!-- Desplegable per seleccionar el curs -->
+  <div>
+    <label for="curs">Curs:</label>
+    <select name="curs" id="curs" required>
+      <option value="">-- Selecciona el curs --</option>
+      <option value="1r" {% if alumne.curs == '1r' %}selected{% endif %}>1r</option>
+      <option value="2n" {% if alumne.curs == '2n' %}selected{% endif %}>2n</option>
+    </select>
+  </div>
+  <button type="submit">Guardar Canvis</button>
+</form>
+{% endblock %}
