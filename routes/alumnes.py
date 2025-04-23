@@ -7,7 +7,7 @@ alumnes_bp = Blueprint("alumnes", __name__)
 
 @alumnes_bp.route("/", methods=["GET"])
 @login_required
-def llista_alumnes():
+def llista_alumnesa():
     # 1. Obtenim els paràmetres GET si existeixen
     grup_id = request.args.get("grup_id", "")     # Exemple: "63bd4..." (ObjectId en string) o "A" si emmagatzemes directament el nom
     cicle_id = request.args.get("cicle_id", "")   # Exemple: "63bd8..."
