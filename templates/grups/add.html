@@ -1,0 +1,13 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Afegir Grup{% endblock %}
+
+{% block content %}
+<h2>Afegir Grup</h2>
+<form method="POST" action="{{ url_for('grups.add_grup') }}">
+  <div>
+    <label for="nom">Nom:</label>
+    <input type="text" name="nom" id="nom" required>
+  </div>
+  <button type="submit" class="btn">Afegir Grup</button>
+</form>
+{% endblock %}

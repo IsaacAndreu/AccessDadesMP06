@@ -15,34 +15,33 @@
     <textarea name="descripcio" id="descripcio">{{ assignatura.descripcio }}</textarea>
   </div>
 
-  <!-- RAs -->
-  <h3>Resultats d'Aprenentatge (RAs)</h3>
-  <table id="ra_table">
-    <thead>
-      <tr>
-        <th>Nom del RA</th>
-        <th>Ponderació (%)</th>
-        <th>Accions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ra in assignatura.ras %}
-      <tr>
-        <td>
-          <input type="text" name="ra_name[]" value="{{ ra.nom }}" placeholder="Nom del RA">
-        </td>
-        <td>
-          <input type="number" name="ra_percentage[]" value="{{ ra.ponderacio }}" step="0.01" min="0" max="100">
-        </td>
-        <td>
-          <button type="button" onclick="removeRow(this)">Eliminar</button>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <button type="button" onclick="addRow()">Afegir RA</button>
-
+  <!-- ras -->
+<h3>Resultats d'Aprenentatge (RAs)</h3>
+<table id="ra_table">
+  <thead>
+    <tr>
+      <th>Nom del RA</th>
+      <th>Ponderació (%)</th>
+      <th>Accions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ra in assignatura.ras %}
+    <tr>
+      <td>
+        <input type="text" name="ra_name[]" value="{{ ra.nom }}" placeholder="Nom del RA" required>
+      </td>
+      <td>
+        <input type="number" name="ra_percentage[]" value="{{ ra.ponderacio }}" step="0.01" min="0" max="100" required>
+      </td>
+      <td>
+        <button type="button" class="btn-delete" onclick="removeRow(this)">Eliminar</button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<button type="button" class="btn" onclick="addRow()">Afegir RA</button>
   <!-- Cursos assignats (multi-select) -->
   <div>
     <label for="courses">Cursos assignats:</label>

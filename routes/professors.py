@@ -95,20 +95,6 @@ def delete_course(course_id):
     return redirect(url_for("professors.llista_cursos"))
 
 # -------------------------
-# Vista de notes (placeholder)
-# -------------------------
-@professors_bp.route("/view_notes")
-@login_required
-def view_notes():
-    """Vista placeholder per a notes"""
-    if "teacher_id" not in session:
-        return redirect(url_for("auth.login"))
-
-    teacher_id = session["teacher_id"]
-    notes = list(mongo.db.notes.find({"teacher_id": teacher_id}))
-    return render_template("professors/view_notes.html", notes=notes)
-
-# -------------------------
 # CRUD de Professors
 # -------------------------
 @professors_bp.route("/list", methods=["GET"])

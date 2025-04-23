@@ -1,0 +1,28 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Editar Nota{% endblock %}
+{% block content %}
+<h2>Editar Nota</h2>
+<form method="POST" action="{{ url_for('notes.edit_nota', nota_id=nota._id) }}">
+  <div>
+    <label>Alumne:</label>
+    <p>{{ nota.alumne_nom }}</p>
+  </div>
+
+  <div>
+    <label>Assignatura:</label>
+    <p>{{ nota.assignatura_nom }}</p>
+  </div>
+
+  <div>
+    <label>RA:</label>
+    <p>{{ nota.ra_nom }}</p>
+  </div>
+
+  <div>
+    <label for="nota">Nota:</label>
+    <input type="number" step="0.01" name="nota" value="{{ nota.nota }}" required>
+  </div>
+
+  <button type="submit" class="btn-edit">Actualitzar</button>
+</form>
+{% endblock %}

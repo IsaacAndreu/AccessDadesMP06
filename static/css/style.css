@@ -11,7 +11,6 @@ body {
     background-color: #f4f4f4;
 }
 
-/* Titulars */
 h1, h2, h3 {
     color: #2c3e50;
     text-align: center;
@@ -53,7 +52,6 @@ h1, h2, h3 {
     background-color: #34495e;
 }
 
-/* Botó de logout */
 .logout {
     background-color: #e74c3c;
     padding: 8px 12px;
@@ -86,10 +84,6 @@ h1, h2, h3 {
 .sidebar-header h2 {
     font-size: 20px;
     color: #2c3e50;
-}/* ---------- LAYOUT CONTAINER (SIDEBAR + MAIN) ---------- */
-.layout-container {
-    display: flex;
-    min-height: 100vh;
 }
 
 .sidebar-menu {
@@ -118,9 +112,9 @@ h1, h2, h3 {
 /* ---------- MAIN CONTENT ---------- */
 .main-content {
     flex: 1;
-    display: flex;            /* fa que el container es centri */
-    justify-content: center;  /* centra horitzontalment */
-    align-items: flex-start;  /* arriba a dalt, no al centre vertical */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
     padding: 20px;
 }
 
@@ -132,60 +126,6 @@ h1, h2, h3 {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* ---------- DASHBOARD (TARGETES) ---------- */
-.dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-.dashboard-card {
-    background-color: #3498db;
-    color: #fff;
-    padding: 20px;
-    text-align: center;
-    border-radius: 10px;
-    transition: transform 0.3s ease, background 0.3s ease;
-    text-decoration: none;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.dashboard-card:hover {
-    transform: scale(1.05);
-    background-color: #2980b9;
-}
-
-/* ---------- COURSE OVERVIEW ---------- */
-.course-overview {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-}
-
-.course-tile {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    transition: box-shadow 0.3s, background 0.3s;
-    cursor: pointer;
-}
-.course-tile:hover {
-    background-color: #f9f9f9;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.course-tile h3 {
-    margin-bottom: 10px;
-    font-size: 18px;
-    color: #2c3e50;
-}
-.course-tile p {
-    color: #666;
-    font-size: 14px;
 }
 
 /* ---------- TAULES ---------- */
@@ -240,6 +180,7 @@ h1, h2, h3 {
     border-radius: 5px;
     color: #fff;
     text-decoration: none;
+    display: inline-block;
 }
 .btn-edit:hover {
     background-color: #d4ac0d;
@@ -252,23 +193,38 @@ h1, h2, h3 {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    box-shadow: none;
-    display: inline-block;
     text-align: center;
+    display: inline-block;
+    transition: background 0.3s ease;
+    box-shadow: none;
+    background-clip: border-box;
+}
+.btn-delete:hover {
+    background-color: #c0392b;
 }
 .btn-delete:focus, .btn-delete:active {
     outline: none;
     box-shadow: none;
 }
 
+/* 🔧 Grup per botons d'acció */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+}
+
 /* ---------- FORMULARIS ---------- */
 form {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    margin: 20px auto;
+    background: none;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    margin: 0;
 }
 
 form div {

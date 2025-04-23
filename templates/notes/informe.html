@@ -1,0 +1,41 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Informe de Qualificacions{% endblock %}
+
+{% block content %}
+<h2>Informe de l'Alumne</h2>
+
+<p><strong>Nom:</strong> {{ alumne.nom }} {{ alumne.cognoms }}</p>
+<p><strong>Email:</strong> {{ alumne.email or "Sense correu" }}</p>
+
+{% if informe %}
+  {% for assignatura_id, dades in informe.items() %}
+    <div class="card" style="margin-bottom: 2rem;">
+      <h3>{{ dades.assignatura_nom }}</h3>
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Resultat d’Aprenentatge</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ra in dades.notes_ra %}
+          <tr>
+            <td>{{ ra.ra_nom }}</td>
+            <td>{{ ra.nota }}</td>
+          </tr>
+          {% endfor %}
+          <tr style="font-weight: bold;">
+            <td>Mitjana assignatura</td>
+            <td>{{ dades.mitjana or "No disponible" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>L’alumne no té cap nota registrada.</p>
+{% endif %}
+
+<a href="{{ url_for('notes.llista_notes') }}" class="btn">Tornar</a>
+{% endblock %}

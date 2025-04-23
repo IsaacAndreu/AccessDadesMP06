@@ -4,7 +4,7 @@
     <ul class="nav-list">
         <li><a href="{{ url_for('professors.dashboard') }}">Inici</a></li>
         <li><a href="#">Notícies</a></li>
-        <li><a href="#">Perfils</a></li>
+        <li><a href="#">Perfil</a></li>
     </ul>
     <ul class="nav-list">
         <li><a href="{{ url_for('auth.logout') }}" class="logout">Sortir</a></li>
@@ -17,12 +17,13 @@
             <h2>Dashboard</h2>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="{{ url_for('professors.llista_cursos') }}">Cursos</a></li>
-            <li><a href="{{ url_for('alumnes.llista_alumnes') }}">Alumnes</a></li>
-            <li><a href="{{ url_for('assignatures.llista_assignatures') }}">Assignatures</a></li>
-            <li><a href="{{ url_for('cicles.llista_cicles') }}">Cicles</a></li>
-            <li><a href="{{ url_for('professors.view_notes') }}">Notes</a></li>
+            <!-- Opcions que demanes -->
+            <li><a href="{{ url_for('grups.llista_grups') }}">Grups</a></li>
             <li><a href="{{ url_for('professors.llista_professors') }}">Professors</a></li>
+            <li><a href="{{ url_for('assignatures.llista_assignatures') }}">Mòdul</a></li>
+            <li><a href="{{ url_for('cicles.llista_cicles') }}">Cicle Formatiu</a></li>
+            <li><a href="{{ url_for('alumnes.llista_alumnes') }}">Alumne</a></li>
+            <li><a href="{{ url_for('notes.llista_notes') }}">Qualificacions</a></li>
         </ul>
     </aside>
 

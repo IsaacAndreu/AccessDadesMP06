@@ -2,6 +2,10 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<!-- Títol general -->
+<h2>Benvingut/da al Sistema de Gestió Educativa</h2>
+
+<!-- SECCIÓ: "Les meves assignatures" (codi original) -->
 <h2>Les meves assignatures</h2>
 
 {% if assignatures %}
@@ -19,14 +23,12 @@
       {% for a in assignatures %}
       <tr>
         <td>{{ a.nom }}</td>
-        <td>
-          {{ cicles_dict.get(a.cicle_id|string, 'N/D') }}
-        </td>
+        <td>{{ cicles_dict.get(a.cicle_id|string, 'N/D') }}</td>
         <td>{{ a.grups | join(', ') }}</td>
         <td>{{ a.curs | join(', ') }}</td>
         <td>
           <a href="{{ url_for('assignatures.edit_assignatura', id=a._id) }}" class="btn-edit">Editar</a>
-          <form action="{{ url_for('assignatures.delete_assignatura', id=a._id) }}" method="post" style="display:inline">
+          <form action="{{ url_for('assignatures.delete_assignatura', id=a._id) }}" method="POST" style="display:inline;">
             <button class="btn-delete">Eliminar</button>
           </form>
         </td>

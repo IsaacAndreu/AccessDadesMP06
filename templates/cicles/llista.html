@@ -1,4 +1,3 @@
-
 {% extends "partials/full_layout.html" %}
 {% block title %}Llista de Cicles{% endblock %}
 {% block content %}
@@ -21,10 +20,12 @@
                     <td>{{ cicle.nom }}</td>
                     <td>{{ cicle.descripcio }}</td>
                     <td>
-                        <a href="{{ url_for('cicles.edit_cicle', id=cicle._id) }}" class="btn-edit">Editar</a>
-                        <form action="{{ url_for('cicles.delete_cicle', id=cicle._id) }}" method="post" style="display:inline;">
-                            <button type="submit" class="btn-delete">Eliminar</button>
-                        </form>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('cicles.edit_cicle', id=cicle._id) }}" class="btn-edit">Editar</a>
+                            <form action="{{ url_for('cicles.delete_cicle', id=cicle._id) }}" method="post">
+                                <button type="submit" class="btn-delete">Eliminar</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

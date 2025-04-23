@@ -1,0 +1,70 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Estadístiques de Qualificacions{% endblock %}
+
+{% block content %}
+<h2>Estadístiques de Qualificacions</h2>
+
+{% if stats %}
+  <h3>Mitjanes per Assignatura</h3>
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Assignatura</th>
+        <th>Mitjana</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in stats.assignatures %}
+      <tr>
+        <td>{{ item.nom }}</td>
+        <td style="color: {% if item.mitjana < 5 %}red{% elif item.mitjana >= 8 %}green{% else %}black{% endif %};">
+          {{ item.mitjana }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Mitjanes per Grup</h3>
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Grup</th>
+        <th>Mitjana</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in stats.grups %}
+      <tr>
+        <td>{{ item.nom }}</td>
+        <td style="color: {% if item.mitjana < 5 %}red{% elif item.mitjana >= 8 %}green{% else %}black{% endif %};">
+          {{ item.mitjana }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Mitjanes per Cicle</h3>
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Cicle</th>
+        <th>Mitjana</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in stats.cicles %}
+      <tr>
+        <td>{{ item.nom }}</td>
+        <td style="color: {% if item.mitjana < 5 %}red{% elif item.mitjana >= 8 %}green{% else %}black{% endif %};">
+          {{ item.mitjana }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No hi ha estadístiques disponibles.</p>
+{% endif %}
+{% endblock %}

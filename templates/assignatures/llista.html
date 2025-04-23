@@ -34,10 +34,12 @@
           </ul>
         </td>
         <td>
-          <a href="{{ url_for('assignatures.edit_assignatura', id=assignatura._id) }}" class="btn-edit">Editar</a>
-          <form action="{{ url_for('assignatures.delete_assignatura', id=assignatura._id) }}" method="post" style="display:inline;">
-            <button type="submit" class="btn-delete">Eliminar</button>
-          </form>
+          <div class="action-buttons">
+            <a href="{{ url_for('assignatures.edit_assignatura', id=assignatura._id) }}" class="btn-edit">Editar</a>
+            <form action="{{ url_for('assignatures.delete_assignatura', id=assignatura._id) }}" method="post">
+              <button type="submit" class="btn-delete">Eliminar</button>
+            </form>
+          </div>
         </td>
       </tr>
     {% endfor %}

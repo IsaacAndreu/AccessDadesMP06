@@ -21,7 +21,7 @@ def add_assignatura():
         nom = request.form.get("nom")
         descripcio = request.form.get("descripcio")
 
-        # 1. Recuperem noms i ponderacions dels RAs
+        # 1. Recuperem noms i ponderacions dels ras
         ra_names = request.form.getlist("ra_name[]")
         ra_percentages = request.form.getlist("ra_percentage[]")
         ras = []
@@ -40,7 +40,7 @@ def add_assignatura():
         any_academic = request.form.get("any_academic")  # Nou camp per l'any acadèmic
         professor_ids = request.form.getlist("professor_ids[]")
 
-        # (Opcional) Comprovem que la suma de RAs sigui 100
+        # (Opcional) Comprovem que la suma de ras sigui 100
         total = sum([ra["ponderacio"] for ra in ras])
         if total != 100:
             flash(f"La suma de les ponderacions dels RAs ha de ser 100%. Actualment suma: {total}%", "error")
