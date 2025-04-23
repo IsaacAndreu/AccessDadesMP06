@@ -1,34 +1,35 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from bson.objectid import ObjectId
-from extensions import mongo, login_required
+from extensions import login_required
+from dao.cicles_dao import (
+    get_all_cicles,
+    add_cicle,
+    get_cicle_by_id,
+    update_cicle,
+    delete_cicle
+)
+
 cicles_bp = Blueprint("cicles", __name__)
 
 
 @cicles_bp.route("/", methods=["GET"])
 @login_required
 def llista_cicles():
-    # Recupera tots els cicles de la col·lecció "cicles"
-    cicles = list(mongo.db.cicles.find())
+    cicles = get_all_cicles()
     return render_template("cicles/llista.html", cicles=cicles)
 
 
 @cicles_bp.route("/add", methods=["GET", "POST"])
 @login_required
-def add_cicle():
+def add_cicle_route():
     if request.method == "POST":
         nom = request.form.get("nom")
         descripcio = request.form.get("descripcio")
 
         if not nom:
             flash("El nom del cicle és obligatori.", "error")
-            return redirect(url_for("cicles.add_cicle"))
+            return redirect(url_for("cicles.add_cicle_route"))
 
-        # Inserim el nou cicle
-        nou_cicle = {
-            "nom": nom.strip(),
-            "descripcio": descripcio.strip() if descripcio else ""
-        }
-        mongo.db.cicles.insert_one(nou_cicle)
+        add_cicle(nom, descripcio)
         flash("Cicle creat correctament.", "success")
         return redirect(url_for("cicles.llista_cicles"))
 
@@ -38,7 +39,7 @@ def add_cicle():
 @cicles_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 def edit_cicle(id):
-    cicle = mongo.db.cicles.find_one({"_id": ObjectId(id)})
+    cicle = get_cicle_by_id(id)
     if not cicle:
         flash("Cicle no trobat.", "error")
         return redirect(url_for("cicles.llista_cicles"))
@@ -51,13 +52,7 @@ def edit_cicle(id):
             flash("El nom del cicle és obligatori.", "error")
             return redirect(url_for("cicles.edit_cicle", id=id))
 
-        mongo.db.cicles.update_one(
-            {"_id": ObjectId(id)},
-            {"$set": {
-                "nom": nom.strip(),
-                "descripcio": descripcio.strip() if descripcio else ""
-            }}
-        )
+        update_cicle(id, nom, descripcio)
         flash("Cicle actualitzat correctament.", "success")
         return redirect(url_for("cicles.llista_cicles"))
 
@@ -66,7 +61,7 @@ def edit_cicle(id):
 
 @cicles_bp.route("/delete/<id>", methods=["POST"])
 @login_required
-def delete_cicle(id):
-    mongo.db.cicles.delete_one({"_id": ObjectId(id)})
+def delete_cicle_route(id):
+    delete_cicle(id)
     flash("Cicle eliminat correctament.", "success")
     return redirect(url_for("cicles.llista_cicles"))

@@ -1,29 +1,39 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from bson.objectid import ObjectId
-from extensions import mongo, login_required
+from extensions import login_required
+from dao.assignatures_dao import (
+    get_assignatures,
+    get_courses_dict,
+    get_courses,
+    get_grups,
+    get_cicles,
+    get_professors,
+    add_assignatura,
+    get_assignatura_by_id,
+    update_assignatura,
+    delete_assignatura_by_id
+)
 
 assignatures_bp = Blueprint("assignatures", __name__)
+
 
 @assignatures_bp.route("/", methods=["GET"])
 @login_required
 def llista_assignatures():
-    assignatures = list(mongo.db.assignatures.find())
-
-    # Creem un diccionari amb els cursos existents per evitar múltiples consultes a la BD
-    cursos_dict = {str(course["_id"]): course["course_name"] for course in mongo.db.courses.find()}
-
+    assignatures = get_assignatures()
+    cursos_dict = get_courses_dict()
     return render_template("assignatures/llista.html", assignatures=assignatures, cursos_dict=cursos_dict)
+
 
 @assignatures_bp.route("/add", methods=["GET", "POST"])
 @login_required
-def add_assignatura():
+def add_assignatura_route():
     if request.method == "POST":
         nom = request.form.get("nom")
         descripcio = request.form.get("descripcio")
-
-        # 1. Recuperem noms i ponderacions dels ras
         ra_names = request.form.getlist("ra_name[]")
         ra_percentages = request.form.getlist("ra_percentage[]")
+
         ras = []
         for name, perc in zip(ra_names, ra_percentages):
             if name.strip():
@@ -33,32 +43,27 @@ def add_assignatura():
                     percentage = 0.0
                 ras.append({"nom": name.strip(), "ponderacio": percentage})
 
-        # 2. Recuperem la resta de camps (courses, grups, etc.)
         courses = request.form.getlist("courses[]")
         grups = request.form.getlist("grups[]")
         cicle_id = request.form.get("cicle_id")
-        any_academic = request.form.get("any_academic")  # Nou camp per l'any acadèmic
+        any_academic = request.form.get("any_academic")
         professor_ids = request.form.getlist("professor_ids[]")
 
-        # (Opcional) Comprovem que la suma de ras sigui 100
         total = sum([ra["ponderacio"] for ra in ras])
         if total != 100:
             flash(f"La suma de les ponderacions dels RAs ha de ser 100%. Actualment suma: {total}%", "error")
-            return redirect(url_for("assignatures.add_assignatura"))
+            return redirect(url_for("assignatures.add_assignatura_route"))
 
-        # 3. Validacions mínimes
         if not nom or not courses or not grups or not cicle_id or not any_academic or not professor_ids:
             flash("Tots els camps són obligatoris.", "error")
-            return redirect(url_for("assignatures.add_assignatura"))
+            return redirect(url_for("assignatures.add_assignatura_route"))
 
-        # 4. Convertim els professor_ids a ObjectId
         professor_ids_obj = [ObjectId(pid) for pid in professor_ids]
 
-        # 5. Creem el diccionari per inserir
         new_assignatura = {
             "nom": nom.strip(),
             "descripcio": descripcio.strip() if descripcio else "",
-            "ras": ras,  # llista de RA processats
+            "ras": ras,
             "courses": courses,
             "grups": grups,
             "cicle_id": ObjectId(cicle_id),
@@ -66,31 +71,25 @@ def add_assignatura():
             "professor_ids": professor_ids_obj
         }
 
-        mongo.db.assignatures.insert_one(new_assignatura)
+        add_assignatura(new_assignatura)
         flash("Assignatura afegida correctament.", "success")
         return redirect(url_for("assignatures.llista_assignatures"))
 
-    # GET: Recuperem dades per al formulari
-    courses_list = list(mongo.db.courses.find())
-    grups_list = list(mongo.db.grups.find())
-    # Si no hi ha grups, inserim per defecte "A" i "B"
-    if not grups_list:
-        default_grups = [{"nom": "A"}, {"nom": "B"}]
-        mongo.db.grups.insert_many(default_grups)
-        grups_list = list(mongo.db.grups.find())
-
-    cicles = list(mongo.db.cicles.find())
-    professors = list(mongo.db.professors.find())
+    courses_list = get_courses()
+    grups_list = get_grups()
+    cicles = get_cicles()
+    professors = get_professors()
     return render_template("assignatures/add.html",
                            courses=courses_list,
                            grups=grups_list,
                            cicles=cicles,
                            professors=professors)
 
+
 @assignatures_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 def edit_assignatura(id):
-    assignatura = mongo.db.assignatures.find_one({"_id": ObjectId(id)})
+    assignatura = get_assignatura_by_id(id)
     if not assignatura:
         flash("Assignatura no trobada.", "error")
         return redirect(url_for("assignatures.llista_assignatures"))
@@ -100,6 +99,7 @@ def edit_assignatura(id):
         descripcio = request.form.get("descripcio")
         ra_names = request.form.getlist("ra_name[]")
         ra_percentages = request.form.getlist("ra_percentage[]")
+
         ras = []
         for name, perc in zip(ra_names, ra_percentages):
             if name.strip():
@@ -126,31 +126,25 @@ def edit_assignatura(id):
 
         professor_ids_obj = [ObjectId(pid) for pid in professor_ids]
 
-        mongo.db.assignatures.update_one(
-            {"_id": ObjectId(id)},
-            {"$set": {
-                "nom": nom.strip(),
-                "descripcio": descripcio.strip() if descripcio else "",
-                "ras": ras,
-                "courses": courses,
-                "grups": grups,
-                "cicle_id": ObjectId(cicle_id),
-                "curs": curs,
-                "professor_ids": professor_ids_obj
-            }}
-        )
+        updated_data = {
+            "nom": nom.strip(),
+            "descripcio": descripcio.strip() if descripcio else "",
+            "ras": ras,
+            "courses": courses,
+            "grups": grups,
+            "cicle_id": ObjectId(cicle_id),
+            "curs": curs,
+            "professor_ids": professor_ids_obj
+        }
+
+        update_assignatura(id, updated_data)
         flash("Assignatura actualitzada correctament.", "success")
         return redirect(url_for("assignatures.llista_assignatures"))
 
-    # GET: Recuperem les llistes per als desplegables
-    courses_list = list(mongo.db.courses.find())
-    grups_list = list(mongo.db.grups.find())
-    if not grups_list:
-        default_grups = [{"nom": "A"}, {"nom": "B"}]
-        mongo.db.grups.insert_many(default_grups)
-        grups_list = list(mongo.db.grups.find())
-    cicles = list(mongo.db.cicles.find())
-    professors = list(mongo.db.professors.find())
+    courses_list = get_courses()
+    grups_list = get_grups()
+    cicles = get_cicles()
+    professors = get_professors()
     return render_template("assignatures/edit.html", assignatura=assignatura,
                            courses=courses_list, grups=grups_list, cicles=cicles, professors=professors)
 
@@ -158,6 +152,6 @@ def edit_assignatura(id):
 @assignatures_bp.route("/delete/<id>", methods=["POST"])
 @login_required
 def delete_assignatura(id):
-    mongo.db.assignatures.delete_one({"_id": ObjectId(id)})
+    delete_assignatura_by_id(id)
     flash("Assignatura eliminada correctament.", "success")
     return redirect(url_for("assignatures.llista_assignatures"))
