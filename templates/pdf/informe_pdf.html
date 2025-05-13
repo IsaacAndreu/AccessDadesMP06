@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Informe PDF</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/informe_pdf.css') }}">
+</head>
+<body>
+
+  <!-- Capçalera amb logo -->
+  <div style="text-align: center; margin-bottom: 30px;">
+    <img src="{{ url_for('static', filename='img/logo_escola.png') }}" style="height: 80px;">
+    <h2 style="margin-top: 10px;">Informe de Qualificacions</h2>
+  </div>
+
+  <!-- Dades de l'alumne -->
+  <div style="margin-bottom: 20px;">
+    <p><strong>Nom:</strong> {{ alumne.nom }} {{ alumne.cognoms }}</p>
+    <p><strong>Email:</strong> {{ alumne.email or "Sense correu" }}</p>
+    <p><strong>Data d’emissió:</strong> {{ current_date }}</p>
+  </div>
+
+  {% if informe %}
+    {% for assignatura_id, dades in informe.items() %}
+      <h3 style="margin-bottom: 5px;">{{ dades.assignatura_nom }}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Resultat d’Aprenentatge</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ra in dades.notes_ra %}
+          <tr>
+            <td>{{ ra.ra_nom }}</td>
+            <td>{{ ra.nota }}</td>
+          </tr>
+          {% endfor %}
+          <tr style="font-weight: bold; background-color: #f2f2f2;">
+            <td>Mitjana assignatura</td>
+            <td>{{ dades.mitjana or "No disponible" }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+    {% endfor %}
+
+    <!-- Signatura -->
+    <div style="margin-top: 50px;">
+      <p><strong>Signatura del tutor/a:</strong></p>
+      <div style="border-bottom: 1px solid #999; width: 300px; height: 40px;"></div>
+      <p style="font-size: 0.9em; color: #777;">Signat digitalment o manualment.</p>
+    </div>
+  {% else %}
+    <p style="color: #888;">Aquest alumne no té cap nota registrada.</p>
+  {% endif %}
+
+</body>
+</html>

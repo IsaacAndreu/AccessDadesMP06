@@ -1,15 +1,28 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from extensions import login_required
-from dao.alumnes_dao import (
-    get_alumnes_filtrats,
-    get_grups,
-    get_cicles,
-    add_alumne,
-    get_alumne_by_id,
-    update_alumne,
-    delete_alumne_by_id
-)
-from bson.objectid import ObjectId
+from dao.db_selector import ACTIVE_DB, ORACLE, MONGO
+
+# Imports dinàmics segons la BBDD
+if ACTIVE_DB == ORACLE:
+    from dao.oracle_alumnes_dao import (
+        get_alumnes_filtrats,
+        get_grups,
+        get_cicles,
+        add_alumne,
+        get_alumne_by_id,
+        update_alumne,
+        delete_alumne_by_id
+    )
+else:
+    from dao.alumnes_dao import (
+        get_alumnes_filtrats,
+        get_grups,
+        get_cicles,
+        add_alumne,
+        get_alumne_by_id,
+        update_alumne,
+        delete_alumne_by_id
+    )
 
 alumnes_bp = Blueprint("alumnes", __name__)
 
@@ -59,7 +72,7 @@ def add_alumne_route():
 
     grups = get_grups()
     cicles = get_cicles()
-    return render_template("alumnes/add.html", grups=grups, cicles=cicles)
+    return render_template("alumnes/afegir.html", grups=grups, cicles=cicles)
 
 
 @alumnes_bp.route("/edit/<id>", methods=["GET", "POST"])

@@ -1,0 +1,31 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Editar notícia{% endblock %}
+
+{% block content %}
+<h2>Editar notícia</h2>
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="form-group mb-3">
+    <label for="titol">Títol:</label>
+    <input type="text" name="titol" value="{{ noticia.titol }}" class="form-control" required>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="cos">Contingut:</label>
+    <textarea name="cos" rows="5" class="form-control" required>{{ noticia.cos }}</textarea>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="imatge">Imatge (opcional):</label>
+    {% if noticia.imatge %}
+      <div class="mb-2">
+        <img src="{{ url_for('static', filename='uploads/noticies/' ~ noticia.imatge) }}"
+             alt="Imatge actual" style="max-width: 200px; border-radius: 5px;">
+      </div>
+    {% endif %}
+    <input type="file" name="imatge" class="form-control">
+  </div>
+
+  <button type="submit" class="btn btn-primary">💾 Desar canvis</button>
+</form>
+{% endblock %}

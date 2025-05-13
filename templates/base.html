@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <title>{% block title %}Centre Educatiu{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 </head>
-<body>
-{% block layout %}{% endblock %}
+<body data-theme="{{ session.get('tema', 'clar') }}">
+
+  {% block layout %}{% endblock %}
+
+  <!-- FullCalendar JS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
 </body>
 </html>

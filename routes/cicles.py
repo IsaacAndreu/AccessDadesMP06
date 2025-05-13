@@ -1,25 +1,24 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from extensions import login_required
-from dao.cicles_dao import (
-    get_all_cicles,
+from extensions import login_required, admin_required
+from dao.oracle_cicles_dao import (
+    get_cicles,
     add_cicle,
     get_cicle_by_id,
     update_cicle,
-    delete_cicle
+    delete_cicle_by_id
 )
 
 cicles_bp = Blueprint("cicles", __name__)
 
-
 @cicles_bp.route("/", methods=["GET"])
 @login_required
 def llista_cicles():
-    cicles = get_all_cicles()
+    cicles = get_cicles()
     return render_template("cicles/llista.html", cicles=cicles)
-
 
 @cicles_bp.route("/add", methods=["GET", "POST"])
 @login_required
+@admin_required
 def add_cicle_route():
     if request.method == "POST":
         nom = request.form.get("nom")
@@ -33,11 +32,11 @@ def add_cicle_route():
         flash("Cicle creat correctament.", "success")
         return redirect(url_for("cicles.llista_cicles"))
 
-    return render_template("cicles/add.html")
-
+    return render_template("cicles/afegir.html")
 
 @cicles_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
+@admin_required
 def edit_cicle(id):
     cicle = get_cicle_by_id(id)
     if not cicle:
@@ -58,10 +57,10 @@ def edit_cicle(id):
 
     return render_template("cicles/edit.html", cicle=cicle)
 
-
-@cicles_bp.route("/delete/<id>", methods=["POST"])
+@cicles_bp.route("/delete/<int:id>", methods=["POST"])
 @login_required
+@admin_required
 def delete_cicle_route(id):
-    delete_cicle(id)
+    delete_cicle_by_id(id)
     flash("Cicle eliminat correctament.", "success")
     return redirect(url_for("cicles.llista_cicles"))

@@ -1,0 +1,26 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Afegir Esdeveniment{% endblock %}
+
+{% block content %}
+<h2>Nou Esdeveniment</h2>
+
+<form method="POST">
+  <div class="form-group">
+    <label for="titol">Títol:</label>
+    <input type="text" name="titol" id="titol" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label for="inici">Data i hora d'inici:</label>
+    <input type="datetime-local" name="inici" id="inici" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label for="fi">Data i hora de fi:</label>
+    <input type="datetime-local" name="fi" id="fi" class="form-control">
+  </div>
+  <div class="form-group">
+    <label for="descripcio">Descripció:</label>
+    <textarea name="descripcio" id="descripcio" class="form-control"></textarea>
+  </div>
+  <button type="submit" class="btn btn-success mt-3">Guardar</button>
+</form>
+{% endblock %}

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     <h2>Llista de Cicles</h2>
-    <a href="{{ url_for('cicles.add_cicle') }}" class="btn">Afegir Cicle</a>
+    <a href="{{ url_for('cicles.add_cicle_route') }}" class="btn">Afegir Cicle</a>
 
     <div class="table-container">
         <table class="styled-table">
@@ -21,8 +21,8 @@
                     <td>{{ cicle.descripcio }}</td>
                     <td>
                         <div class="action-buttons">
-                            <a href="{{ url_for('cicles.edit_cicle', id=cicle._id) }}" class="btn-edit">Editar</a>
-                            <form action="{{ url_for('cicles.delete_cicle', id=cicle._id) }}" method="post">
+                            <a href="{{ url_for('cicles.edit_cicle', id=cicle.id) }}" class="btn-edit">Editar</a>
+                            <form action="{{ url_for('cicles.delete_cicle_route', id=cicle.id) }}" method="post" style="display:inline;">
                                 <button type="submit" class="btn-delete">Eliminar</button>
                             </form>
                         </div>

@@ -30,7 +30,7 @@ def add_ra_route():
         flash("RA afegit correctament.", "success")
         return redirect(url_for("ras.llista_ras"))
 
-    return render_template("ras/add.html")
+    return render_template("ras/afegir.html")
 
 @ras_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required

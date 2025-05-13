@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     <h2>Editar Cicle</h2>
-    <form method="POST" action="{{ url_for('cicles.edit_cicle', id=cicle._id) }}">
+    <form method="POST" action="{{ url_for('cicles.edit_cicle', id=cicle.id) }}">
         <div>
             <label for="nom">Nom del Cicle:</label>
             <input type="text" name="nom" id="nom" value="{{ cicle.nom }}" required>

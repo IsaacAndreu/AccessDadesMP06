@@ -1,0 +1,34 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Notícies{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📰 Últimes notícies</h2>
+
+<a href="{{ url_for('noticies.formulari_afegir_noticia') }}" class="btn">+ Nova notícia</a>
+
+<div class="noticies-grid">
+  {% for noticia in noticies %}
+    <div class="noticia-card">
+      {% if noticia.imatge %}
+        <a href="{{ url_for('noticies.veure_noticia', id=noticia._id) }}">
+          <img src="{{ url_for('static', filename='uploads/noticies/' + noticia.imatge) }}" alt="Imatge" class="noticia-img">
+        </a>
+      {% endif %}
+      <div class="noticia-info">
+        <h3 class="noticia-titol">
+          <a href="{{ url_for('noticies.veure_noticia', id=noticia._id) }}">
+            {{ noticia.titol }}
+          </a>
+        </h3>
+        <p class="noticia-cos">{{ noticia.cos[:100] }}...</p>
+        <div class="news-actions">
+          <a href="{{ url_for('noticies.editar_noticia_route', id=noticia._id) }}" class="btn-edit">✏️ Edita</a>
+          <form method="POST" action="{{ url_for('noticies.eliminar_noticia_route', id=noticia._id) }}" style="display:inline;">
+            <button type="submit" class="btn-delete" onclick="return confirm('Segur que vols eliminar aquesta notícia?')">🗑 Elimina</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

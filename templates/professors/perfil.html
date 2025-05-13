@@ -1,0 +1,132 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}El meu perfil{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 750px; margin: 0 auto;">
+  <div class="card p-4 shadow-sm">
+    <h2 class="text-center mb-4">El meu perfil</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} text-center">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- FOTO DE PERFIL -->
+    <!-- FOTO DE PERFIL -->
+    <div class="text-center mb-4">
+      {% if professor.foto_perfil %}
+        <img src="{{ url_for('static', filename='uploads/' + professor.foto_perfil) }}" class="rounded-circle shadow" width="130">
+      {% else %}
+        <img src="{{ url_for('static', filename='img/default_icon.png') }}" class="rounded-circle shadow" width="130">
+      {% endif %}
+    </div>
+
+
+    <!-- FORMULARI DE PERFIL -->
+    <form method="POST" enctype="multipart/form-data">
+
+      <!-- FOTO -->
+      <div class="form-group mb-3">
+        <label for="foto_perfil">Canvia la teva foto de perfil:</label>
+        <input type="file" name="foto_perfil" class="form-control">
+      </div>
+
+      <hr>
+      <h5>Informació personal</h5>
+      <div class="form-group mb-2">
+        <label for="nom">Nom:</label>
+        <input type="text" name="nom" value="{{ professor.nom or '' }}" class="form-control" required>
+      </div>
+
+      <div class="form-group mb-2">
+        <label for="cognoms">Cognoms:</label>
+        <input type="text" name="cognoms" value="{{ professor.cognoms or '' }}" class="form-control" required>
+      </div>
+
+      <div class="form-group mb-2">
+        <label for="email">Correu electrònic:</label>
+        <input type="email" name="email" value="{{ professor.email or '' }}" class="form-control" readonly>
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="telefon">Telèfon:</label>
+        <input type="text" name="telefon" value="{{ professor.telefon or '' }}" class="form-control">
+      </div>
+
+      <hr>
+      <h5>Canvi de contrasenya</h5>
+      <div class="form-group mb-2">
+        <label for="nova_password">Nova contrasenya:</label>
+        <input type="password" name="nova_password" class="form-control">
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="confirmar">Confirma nova contrasenya:</label>
+        <input type="password" name="confirmar" class="form-control">
+      </div>
+
+      <hr>
+      <h5>Activitat docent</h5>
+      <div class="row mb-3">
+        {% if assignatures %}
+          {% for assig in assignatures %}
+            <div class="col-md-6 mb-2">
+              <div class="border rounded px-3 py-2 bg-light">📘 {{ assig.nom }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="col-12 text-muted">Cap assignatura assignada.</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <strong>Últim accés:</strong> {{ professor.ultim_acces or 'Desconegut' }}
+      </div>
+
+      <hr>
+      <h5>Preferències</h5>
+      <h5>Preferències</h5>
+      <div class="form-group mb-3">
+        <label for="tema">Tema visual:</label>
+        <select name="tema" class="form-control">
+          <option value="clar" {% if professor.tema == 'clar' %}selected{% endif %}>Clar</option>
+          <option value="fosc" {% if professor.tema == 'fosc' %}selected{% endif %}>Fosc</option>
+        </select>
+      </div>
+
+
+      <hr>
+      <h5>Pujar nou document</h5>
+      <div class="form-group mb-3">
+        <label for="nou_document">Selecciona un fitxer:</label>
+        <input type="file" name="nou_document" class="form-control">
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary mt-3">Actualitzar perfil</button>
+      </div>
+    </form> <!-- FINAL DEL FORMULARI DE PERFIL -->
+
+    <hr>
+    <h5>Fitxers associats</h5>
+    {% if professor.documents %}
+      <ul class="list-group mb-3">
+        {% for doc in professor.documents %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('static', filename='uploads/' + doc) }}" target="_blank">📄 {{ doc }}</a>
+            <form method="POST" action="{{ url_for('professors.delete_document') }}" onsubmit="return confirm('Segur que vols eliminar aquest document?')" class="mb-0">
+              <input type="hidden" name="doc_name" value="{{ doc }}">
+              <button type="submit" class="btn btn-sm btn-danger">🗑 Eliminar</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">No hi ha cap document pujat.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

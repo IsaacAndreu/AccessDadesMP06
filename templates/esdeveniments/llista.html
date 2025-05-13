@@ -1,0 +1,110 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Agenda i esdeveniments{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📆 Agenda d'esdeveniments</h2>
+
+{% if session.get("teacher_id") %}
+  <div class="text-center mb-3">
+    <a href="{{ url_for('esdeveniments.afegir_esdeveniment') }}" class="btn btn-primary">+ Nou esdeveniment</a>
+  </div>
+{% endif %}
+
+<div id="calendar" style="max-width: 900px; margin: auto;"></div>
+
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .modal-box {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 400px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.25);
+  }
+  .modal-box .btn-edit,
+  .modal-box .btn-delete {
+    display: inline-block;
+    margin-top: 10px;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'ca',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      events: "{{ url_for('esdeveniments.obtenir_esdeveniments') }}",
+
+      dateClick: function(info) {
+        const title = prompt("Títol de l'esdeveniment:");
+        if (title) {
+          fetch("{{ url_for('esdeveniments.afegir_des_del_calendari') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: title, start: info.dateStr })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "ok") {
+              calendar.refetchEvents();
+              alert("Esdeveniment afegit!");
+            } else {
+              alert("Error: " + data.message);
+            }
+          });
+        }
+      },
+
+      eventClick: function(info) {
+        const event = info.event;
+        const modalContent = `
+          <h4>${event.title}</h4>
+          <p><strong>Inici:</strong> ${event.start.toLocaleString()}</p>
+          ${event.end ? `<p><strong>Fi:</strong> ${event.end.toLocaleString()}</p>` : ""}
+          <div style="margin-top:10px;">
+            <a href="/esdeveniments/editar/${event.id}" class="btn btn-edit">✏️ Editar</a>
+            <button class="btn-delete" onclick="eliminarEsdeveniment('${event.id}')">🗑 Eliminar</button>
+          </div>
+        `;
+        const modal = document.createElement('div');
+        modal.innerHTML = `<div class="modal-overlay"><div class="modal-box">${modalContent}</div></div>`;
+        document.body.appendChild(modal);
+        modal.querySelector('.modal-overlay').addEventListener('click', () => modal.remove());
+      }
+    });
+
+    calendar.render();
+
+    // Funció global per eliminar
+    window.eliminarEsdeveniment = function(id) {
+      if (confirm("Vols eliminar aquest esdeveniment?")) {
+        fetch(`/esdeveniments/eliminar/${id}`, {
+          method: "POST"
+        })
+        .then(response => {
+          if (response.ok) {
+            alert("Esdeveniment eliminat!");
+            calendar.refetchEvents();
+            document.querySelector(".modal-overlay").remove();
+          } else {
+            alert("No s'ha pogut eliminar.");
+          }
+        });
+      }
+    }
+  });
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}Afegir Nota{% endblock %}
 {% block content %}
 <h2>Afegir Nota</h2>
-<form method="POST" action="{{ url_for('notes.add_nota') }}">
+<form method="POST" action="{{ url_for('notes.add_nota_route') }}">
   <div>
     <label for="alumne_id">Alumne:</label>
     <select name="alumne_id" id="alumne_id" required>

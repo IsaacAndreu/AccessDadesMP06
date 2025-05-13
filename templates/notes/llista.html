@@ -6,7 +6,7 @@
 
 <div class="top-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
   <!-- Botó afegir -->
-  <a href="{{ url_for('notes.add_nota') }}" class="btn">Afegir Nota</a>
+  <a href="{{ url_for('notes.add_nota_route') }}" class="btn">Afegir Nota</a>
 
   <!-- Cercador + Informe -->
   <form method="GET" action="{{ url_for('notes.llista_notes') }}" style="display: flex; gap: 10px; align-items: center;">
@@ -47,7 +47,7 @@
         <td>
           <div class="action-buttons">
             <a href="{{ url_for('notes.edit_nota', id=nota._id) }}" class="btn-edit">Editar</a>
-            <form method="POST" action="{{ url_for('notes.delete_nota', id=nota._id) }}">
+            <form method="POST" action="{{ url_for('notes.delete_nota_route', id=nota._id) }}">
               <button type="submit" class="btn-delete" onclick="return confirm('Segur que vols eliminar aquesta nota?');">
                 Eliminar
               </button>

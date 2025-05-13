@@ -2,7 +2,7 @@
 {% block title %}Professors{% endblock %}
 {% block content %}
 <h2>Gestió de Professors</h2>
-<a href="{{ url_for('professors.add_professor') }}" class="btn">Afegir Professor</a>
+<a href="{{ url_for('professors.add_professor_route') }}" class="btn">Afegir Professor</a>
 
 {% if professors %}
 <div class="table-container">
@@ -23,7 +23,7 @@
         <td>{{ p.email }}</td>
         <td>
           <a href="{{ url_for('professors.edit_professor', prof_id=p._id) }}" class="btn-edit">Editar</a>
-          <form action="{{ url_for('professors.delete_professor', prof_id=p._id) }}" method="POST" style="display:inline;">
+          <form action="{{ url_for('professors.delete_professor_route', prof_id=p._id) }}" method="POST">
             <button type="submit" class="btn-delete">Eliminar</button>
           </form>
         </td>

@@ -2,7 +2,8 @@
 {% block title %}Editar Nota{% endblock %}
 {% block content %}
 <h2>Editar Nota</h2>
-<form method="POST" action="{{ url_for('notes.edit_nota', nota_id=nota._id) }}">
+
+<form method="POST" action="{{ url_for('notes.edit_nota', id=nota._id|string) }}">
   <div>
     <label>Alumne:</label>
     <p>{{ nota.alumne_nom }}</p>
@@ -13,10 +14,7 @@
     <p>{{ nota.assignatura_nom }}</p>
   </div>
 
-  <div>
-    <label>RA:</label>
-    <p>{{ nota.ra_nom }}</p>
-  </div>
+  <input type="hidden" name="ra_id" value="{{ nota.ra_nom }}">
 
   <div>
     <label for="nota">Nota:</label>

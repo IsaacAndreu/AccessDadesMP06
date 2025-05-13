@@ -1,6 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from extensions import login_required
+from extensions import login_required, admin_required
 from dao.professors_dao import *
+from dao.professors_dao import get_grups_dict
+from werkzeug.security import generate_password_hash
+from bson import ObjectId
+import os
+from werkzeug.utils import secure_filename
 
 professors_bp = Blueprint("professors", __name__)
 
@@ -11,7 +16,13 @@ def dashboard():
     teacher_id = session["teacher_id"]
     assignatures = get_assignatures_by_teacher(teacher_id)
     cicles_dict = get_cicles_dict()
-    return render_template("professors/dashboard.html", assignatures=assignatures, cicles_dict=cicles_dict)
+    grups_dict = get_grups_dict()
+    return render_template(
+        "professors/dashboard.html",
+        assignatures=assignatures,
+        cicles_dict=cicles_dict,
+        grups_dict=grups_dict
+    )
 
 
 @professors_bp.route("/cursos", methods=["GET"])
@@ -23,6 +34,7 @@ def llista_cursos():
 
 @professors_bp.route("/create_course", methods=["GET", "POST"])
 @login_required
+@admin_required
 def create_course():
     if request.method == "POST":
         course_name = request.form.get("course_name")
@@ -41,6 +53,7 @@ def create_course():
 
 @professors_bp.route("/cursos/<course_id>/edit", methods=["GET", "POST"])
 @login_required
+@admin_required
 def edit_course(course_id):
     course = get_course_by_id(course_id)
     if not course:
@@ -64,6 +77,7 @@ def edit_course(course_id):
 
 @professors_bp.route("/cursos/<course_id>/delete", methods=["POST"])
 @login_required
+@admin_required
 def delete_course_route(course_id):
     result = delete_course(course_id)
     if result.deleted_count > 0:
@@ -75,6 +89,7 @@ def delete_course_route(course_id):
 
 @professors_bp.route("/list", methods=["GET"])
 @login_required
+@admin_required
 def llista_professors():
     professors = get_all_professors()
     return render_template("professors/llista_professors.html", professors=professors)
@@ -82,6 +97,7 @@ def llista_professors():
 
 @professors_bp.route("/add", methods=["GET", "POST"])
 @login_required
+@admin_required
 def add_professor_route():
     if request.method == "POST":
         nom = request.form.get("nom")
@@ -101,6 +117,7 @@ def add_professor_route():
 
 @professors_bp.route("/edit/<prof_id>", methods=["GET", "POST"])
 @login_required
+@admin_required
 def edit_professor(prof_id):
     professor = get_professor_by_id(prof_id)
     if not professor:
@@ -125,6 +142,7 @@ def edit_professor(prof_id):
 
 @professors_bp.route("/delete/<prof_id>", methods=["POST"])
 @login_required
+@admin_required
 def delete_professor_route(prof_id):
     result = delete_professor(prof_id)
     if result.deleted_count > 0:
@@ -132,3 +150,103 @@ def delete_professor_route(prof_id):
     else:
         flash("No s'ha pogut eliminar el professor (no trobat).", "error")
     return redirect(url_for("professors.llista_professors"))
+
+
+@professors_bp.route("/perfil", methods=["GET", "POST"])
+@login_required
+def perfil():
+    professor_id = session["teacher_id"]
+    professor = get_professor_by_id(professor_id)
+
+    if request.method == "POST":
+        nom = request.form.get("nom")
+        cognoms = request.form.get("cognoms")
+        telefon = request.form.get("telefon")
+        tema = request.form.get("tema")
+        nova_password = request.form.get("nova_password")
+        confirmar = request.form.get("confirmar")
+
+        foto_filename = None
+        hashed_password = None
+
+        if nova_password:
+            if nova_password != confirmar:
+                flash("Les contrasenyes no coincideixen.", "error")
+                return redirect(url_for("professors.perfil"))
+            hashed_password = generate_password_hash(nova_password)
+
+        foto = request.files.get("foto_perfil")
+        if foto and foto.filename != "":
+            filename = secure_filename(foto.filename)
+            ext = filename.rsplit(".", 1)[-1].lower()
+            if ext not in {"png", "jpg", "jpeg", "gif"}:
+                flash("Format d'imatge no vàlid per la foto.", "error")
+                return redirect(url_for("professors.perfil"))
+            foto_path = os.path.join("static/uploads", filename)
+            foto.save(foto_path)
+            foto_filename = filename
+
+        nou_document = request.files.get("nou_document")
+        if nou_document and nou_document.filename != "":
+            doc_filename = secure_filename(nou_document.filename)
+            doc_ext = doc_filename.rsplit(".", 1)[-1].lower()
+            if doc_ext not in {"pdf", "doc", "docx", "png", "jpg", "jpeg"}:
+                flash("Format de document no vàlid.", "error")
+                return redirect(url_for("professors.perfil"))
+
+            doc_path = os.path.join("static/uploads", doc_filename)
+            nou_document.save(doc_path)
+
+            mongo.db.professors.update_one(
+                {"_id": ObjectId(professor_id)},
+                {"$addToSet": {"documents": doc_filename}}
+            )
+
+        update_professor_perfil(
+            prof_id=professor_id,
+            dades={
+                "nom": nom,
+                "cognoms": cognoms,
+                "telefon": telefon,
+                "tema": tema
+            },
+            nova_password=hashed_password,
+            foto_filename=foto_filename
+        )
+        session["tema"] = tema
+        flash("Perfil actualitzat correctament.", "success")
+        return redirect(url_for("professors.perfil"))
+
+    assignatures = get_assignatures_by_teacher(professor_id)
+
+    return render_template("professors/perfil.html", professor=professor, assignatures=assignatures)
+
+
+@professors_bp.route("/perfil/eliminar_document", methods=["POST"])
+@login_required
+def delete_document():
+    doc_name = request.form.get("doc_name")
+    professor_id = session["teacher_id"]
+
+    if not doc_name:
+        flash("Cap document indicat per eliminar.", "error")
+        return redirect(url_for("professors.perfil"))
+
+    result = mongo.db.professors.update_one(
+        {"_id": ObjectId(professor_id)},
+        {"$pull": {"documents": doc_name}}
+    )
+
+    file_path = os.path.join("static/uploads", doc_name)
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            flash(f"Error eliminant el fitxer físic: {e}", "error")
+
+    if result.modified_count > 0:
+        flash("Document eliminat correctament.", "success")
+    else:
+        flash("No s'ha pogut eliminar el document (potser no existeix).", "error")
+
+    return redirect(url_for("professors.perfil"))

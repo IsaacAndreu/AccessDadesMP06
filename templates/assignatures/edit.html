@@ -45,7 +45,7 @@
   <!-- Cursos assignats (multi-select) -->
   <div>
     <label for="courses">Cursos assignats:</label>
-    <select name="courses[]" id="courses" multiple required>
+    <select name="courses[]" id="courses" multiple>
       {% for course in courses %}
       <option value="{{ course._id }}"
         {% if course._id|string in assignatura.courses %} selected {% endif %}>

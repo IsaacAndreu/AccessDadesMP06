@@ -1,0 +1,74 @@
+@page {
+  size: A4;
+  margin: 2.5cm 2cm 3.5cm 2cm;
+
+  @bottom-left {
+    content: "Escola Exemplar";
+  }
+
+  @bottom-right {
+    content: "Pàgina " counter(page) " de " counter(pages);
+  }
+}
+
+body {
+  font-family: 'Helvetica', sans-serif;
+  font-size: 11pt;
+  color: #333;
+  line-height: 1.5;
+}
+
+h2 {
+  text-align: center;
+  font-size: 22pt;
+  margin-bottom: 5px;
+}
+
+h3 {
+  font-size: 16pt;
+  color: #1a73e8;
+  margin-top: 30px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5pt;
+  margin-top: 10px;
+  margin-bottom: 25px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+tr:last-child {
+  font-weight: bold;
+  background-color: #f1f1f1;
+}
+
+.footer-note {
+  position: fixed;
+  bottom: 1cm;
+  left: 2cm;
+  right: 2cm;
+  font-size: 9pt;
+  display: flex;
+  justify-content: space-between;
+  color: #666;
+  border-top: 1px solid #ccc;
+  padding-top: 5px;
+}

@@ -1,0 +1,19 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Detall esdeveniment{% endblock %}
+
+{% block content %}
+<h2>{{ esdeveniment.titol }}</h2>
+
+<p><strong>Inici:</strong> {{ esdeveniment.data_inici.strftime('%d/%m/%Y %H:%M') }}</p>
+{% if esdeveniment.data_fi %}
+  <p><strong>Fi:</strong> {{ esdeveniment.data_fi.strftime('%d/%m/%Y %H:%M') }}</p>
+{% endif %}
+
+{% if esdeveniment.descripcio %}
+  <p><strong>Descripció:</strong> {{ esdeveniment.descripcio }}</p>
+{% endif %}
+
+<p><strong>Recordatori:</strong> {{ 'Sí' if esdeveniment.recordatori else 'No' }}</p>
+
+<a href="{{ url_for('esdeveniments.llistar_esdeveniments') }}" class="btn btn-secondary mt-3">← Tornar</a>
+{% endblock %}

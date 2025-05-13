@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from bson.objectid import ObjectId
-from extensions import login_required
+from extensions import login_required, admin_required
 from dao.assignatures_dao import (
     get_assignatures,
     get_courses_dict,
@@ -16,7 +16,6 @@ from dao.assignatures_dao import (
 
 assignatures_bp = Blueprint("assignatures", __name__)
 
-
 @assignatures_bp.route("/", methods=["GET"])
 @login_required
 def llista_assignatures():
@@ -27,6 +26,7 @@ def llista_assignatures():
 
 @assignatures_bp.route("/add", methods=["GET", "POST"])
 @login_required
+@admin_required
 def add_assignatura_route():
     if request.method == "POST":
         nom = request.form.get("nom")
@@ -79,7 +79,7 @@ def add_assignatura_route():
     grups_list = get_grups()
     cicles = get_cicles()
     professors = get_professors()
-    return render_template("assignatures/add.html",
+    return render_template("assignatures/afegir.html",
                            courses=courses_list,
                            grups=grups_list,
                            cicles=cicles,
@@ -88,6 +88,7 @@ def add_assignatura_route():
 
 @assignatures_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
+@admin_required
 def edit_assignatura(id):
     assignatura = get_assignatura_by_id(id)
     if not assignatura:
@@ -112,10 +113,10 @@ def edit_assignatura(id):
         courses = request.form.getlist("courses[]")
         grups = request.form.getlist("grups[]")
         cicle_id = request.form.get("cicle_id")
-        curs = request.form.getlist("curs[]")
+        any_academic = request.form.get("any_academic")
         professor_ids = request.form.getlist("professor_ids[]")
 
-        if not nom or not courses or not grups or not cicle_id or not curs or not professor_ids:
+        if not nom or not courses or not grups or not cicle_id or not any_academic or not professor_ids:
             flash("Tots els camps són obligatoris.", "error")
             return redirect(url_for("assignatures.edit_assignatura", id=id))
 
@@ -133,7 +134,7 @@ def edit_assignatura(id):
             "courses": courses,
             "grups": grups,
             "cicle_id": ObjectId(cicle_id),
-            "curs": curs,
+            "any_academic": any_academic,
             "professor_ids": professor_ids_obj
         }
 
@@ -151,6 +152,7 @@ def edit_assignatura(id):
 
 @assignatures_bp.route("/delete/<id>", methods=["POST"])
 @login_required
+@admin_required
 def delete_assignatura(id):
     delete_assignatura_by_id(id)
     flash("Assignatura eliminada correctament.", "success")

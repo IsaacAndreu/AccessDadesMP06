@@ -74,3 +74,32 @@ def get_notes_by_alumne(alumne_id):
 
 def get_alumne_by_id(alumne_id):
     return mongo.db.alumnes.find_one({"_id": ObjectId(alumne_id)})
+
+def get_informe_per_alumne(alumne_id):
+    notes = get_notes_by_alumne(alumne_id)
+    assignatures_dict = {str(a["_id"]): a for a in get_all_assignatures_raw()}
+
+    informe = {}
+    for nota in notes:
+        assignatura_id = str(nota["assignatura_id"])
+        ra_nom = nota["ra_id"]
+        valor = nota["nota"]
+        informe.setdefault(assignatura_id, {
+            "assignatura_nom": assignatures_dict.get(assignatura_id, {}).get("nom", "Desconeguda"),
+            "notes_ra": [],
+            "mitjana": None
+        })["notes_ra"].append({"ra_nom": ra_nom, "nota": valor})
+
+    for assignatura_id, dades in informe.items():
+        assignatura = assignatures_dict.get(assignatura_id)
+        ras = assignatura.get("ras", []) if assignatura else []
+        total_pes = sum([next((ra.get("ponderacio", 0) for ra in ras if ra["nom"] == nota["ra_nom"]), 0)
+                         for nota in dades["notes_ra"]])
+        total_ponderat = sum([nota["nota"] * next((ra.get("ponderacio", 0)
+                               for ra in ras if ra["nom"] == nota["ra_nom"]), 0)
+                               for nota in dades["notes_ra"]])
+
+        if total_pes > 0:
+            dades["mitjana"] = round(total_ponderat / total_pes, 2)
+
+    return informe

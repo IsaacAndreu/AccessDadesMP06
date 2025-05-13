@@ -2,6 +2,13 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from bson.objectid import ObjectId
 from extensions import login_required
 from dao.notes_dao import *  # Si tens les funcions dins del fitxer
+from weasyprint import CSS
+from flask import render_template, make_response, session
+from weasyprint import HTML
+import io
+from datetime import datetime
+from dao.professors_dao import get_professor_by_id
+from dao.assignatures_dao import get_assignatura_by_id
 
 notes_bp = Blueprint("notes", __name__)
 
@@ -25,7 +32,7 @@ def llista_notes():
 
 @notes_bp.route("/add", methods=["GET", "POST"])
 @login_required
-def add_nota():
+def add_nota_route():
     if request.method == "POST":
         alumne_id = request.form.get("alumne_id")
         assignatura_id = request.form.get("assignatura_id")
@@ -54,7 +61,7 @@ def add_nota():
 
     alumnes = list(get_all_alumnes_dict().values())
     assignatures = get_assignatures_amb_ras()
-    return render_template("notes/add.html", alumnes=alumnes, assignatures=assignatures)
+    return render_template("notes/afegir.html", alumnes=alumnes, assignatures=assignatures)
 
 
 @notes_bp.route("/stats")
@@ -122,13 +129,20 @@ def edit_nota(id):
         flash("Nota actualitzada correctament.", "success")
         return redirect(url_for("notes.llista_notes"))
 
-    assignatures = get_assignatures_amb_ras()
+    # Conversions per evitar errors al renderitzat
     nota["_id"] = str(nota["_id"])
     nota["alumne_id"] = str(nota["alumne_id"])
     nota["assignatura_id"] = str(nota["assignatura_id"])
 
-    return render_template("notes/edit.html", nota=nota, assignatures=assignatures)
+    # Afegim noms visibles al template
+    alumne = get_alumne_by_id(nota["alumne_id"])
+    assignatura = get_assignatura_by_id(nota["assignatura_id"])
 
+    nota["alumne_nom"] = f"{alumne['nom']} {alumne['cognoms']}" if alumne else "Alumne desconegut"
+    nota["assignatura_nom"] = assignatura["nom"] if assignatura else "Assignatura desconeguda"
+    nota["ra_nom"] = nota.get("ra_id", "RA desconegut")
+
+    return render_template("notes/edit.html", nota=nota)
 
 @notes_bp.route("/delete/<id>", methods=["POST"])
 @login_required
@@ -175,4 +189,47 @@ def informe_alumne(alumne_id):
         if total_pes > 0:
             dades["mitjana"] = round(total_ponderat / total_pes, 2)
 
-    return render_template("notes/informe.html", alumne=alumne, informe=informe)
+    data = datetime.today().strftime("%d/%m/%Y")
+    return render_template("notes/informe.html", alumne=alumne, informe=informe, current_date=data, pdf=False)
+
+
+from flask import render_template, make_response
+from weasyprint import HTML
+import io
+
+from datetime import datetime
+
+from flask import render_template, make_response, session
+from weasyprint import HTML
+import io
+from datetime import datetime
+from dao.professors_dao import get_professor_by_id  # ⬅️ afegit
+
+@notes_bp.route("/alumne/<alumne_id>/informe/pdf")
+@login_required
+def exportar_informe_pdf(alumne_id):
+    alumne = get_alumne_by_id(alumne_id)
+    informe = get_informe_per_alumne(alumne_id)
+    data = datetime.today().strftime("%d/%m/%Y")
+    professor = get_professor_by_id(session["teacher_id"])  # ⬅️ nou
+
+    html = render_template(
+        "pdf/informe_pdf.html",
+        alumne=alumne,
+        informe=informe,
+        current_date=data,
+        professor=professor  # ⬅️ passem el professor
+    )
+
+    pdf_io = io.BytesIO()
+    HTML(string=html, base_url=request.host_url).write_pdf(
+        pdf_io,
+        stylesheets=[CSS("static/css/informe_pdf.css")]
+    )
+    pdf_io.seek(0)
+
+    response = make_response(pdf_io.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=informe_{alumne['nom']}_{alumne['cognoms']}.pdf'
+
+    return response

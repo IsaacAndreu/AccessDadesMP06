@@ -1,0 +1,27 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Afegir notícia{% endblock %}
+
+{% block content %}
+<h2>Nova notícia</h2>
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="form-group mb-3">
+    <label for="titol">Títol:</label>
+    <input type="text" name="titol" id="titol" class="form-control" placeholder="Escriu el títol..." required>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="cos">Contingut:</label>
+    <textarea name="cos" id="cos" class="form-control" rows="6" placeholder="Escriu el contingut aquí..." required></textarea>
+  </div>
+
+  <div class="form-group mb-4">
+    <label for="imatge">Imatge (opcional):</label>
+    <input type="file" name="imatge" id="imatge" class="form-control" accept="image/*">
+  </div>
+
+  <div class="text-center">
+    <button type="submit" class="btn btn-primary">📢 Publicar notícia</button>
+  </div>
+</form>
+{% endblock %}

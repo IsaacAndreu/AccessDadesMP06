@@ -2,15 +2,24 @@
 {% block title %}Informe de Qualificacions{% endblock %}
 
 {% block content %}
-<h2>Informe de l'Alumne</h2>
+<h2>Informe de Qualificacions</h2>
 
-<p><strong>Nom:</strong> {{ alumne.nom }} {{ alumne.cognoms }}</p>
-<p><strong>Email:</strong> {{ alumne.email or "Sense correu" }}</p>
+<div class="top-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <div>
+    <p><strong>Nom:</strong> {{ alumne.nom }} {{ alumne.cognoms }}</p>
+    <p><strong>Email:</strong> {{ alumne.email or "Sense correu" }}</p>
+    <p><strong>Data d’emissió:</strong> {{ current_date }}</p>
+  </div>
+
+  {% if not pdf %}
+    <a href="{{ url_for('notes.exportar_informe_pdf', alumne_id=alumne._id) }}" class="btn">📄 Descarregar PDF</a>
+  {% endif %}
+</div>
 
 {% if informe %}
   {% for assignatura_id, dades in informe.items() %}
-    <div class="card" style="margin-bottom: 2rem;">
-      <h3>{{ dades.assignatura_nom }}</h3>
+    <div class="table-container" style="margin-bottom: 30px;">
+      <h3 style="margin-bottom: 10px;">{{ dades.assignatura_nom }}</h3>
       <table class="styled-table">
         <thead>
           <tr>
@@ -25,7 +34,7 @@
             <td>{{ ra.nota }}</td>
           </tr>
           {% endfor %}
-          <tr style="font-weight: bold;">
+          <tr style="font-weight: bold; background-color: #f5f5f5;">
             <td>Mitjana assignatura</td>
             <td>{{ dades.mitjana or "No disponible" }}</td>
           </tr>
@@ -33,9 +42,16 @@
       </table>
     </div>
   {% endfor %}
+
+  <!-- Signatura -->
+  <div style="margin-top: 50px;">
+    <p><strong>Signatura del tutor/a:</strong></p>
+    <div style="border-bottom: 1px solid #999; width: 300px; height: 40px;"></div>
+    <p style="font-size: 0.9em; color: #777;">Signat digitalment o manualment.</p>
+  </div>
 {% else %}
-  <p>L’alumne no té cap nota registrada.</p>
+  <p>No hi ha cap nota registrada per aquest alumne.</p>
 {% endif %}
 
-<a href="{{ url_for('notes.llista_notes') }}" class="btn">Tornar</a>
+<a href="{{ url_for('notes.llista_notes') }}" class="btn" style="margin-top: 40px;">← Tornar</a>
 {% endblock %}

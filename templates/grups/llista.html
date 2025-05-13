@@ -3,7 +3,7 @@
 
 {% block content %}
 <h2>Llista de Grups</h2>
-<a href="{{ url_for('grups.add_grup') }}" class="btn">Afegir Grup</a>
+<a href="{{ url_for('grups.add_grup_route') }}" class="btn">Afegir Grup</a>
 
 {% if grups %}
 <div class="table-container">
@@ -19,10 +19,12 @@
       <tr>
         <td>{{ g.nom }}</td>
         <td>
-          <a href="{{ url_for('grups.edit_grup', id=g._id) }}" class="btn-edit">Editar</a>
-          <form action="{{ url_for('grups.delete_grup', id=g._id) }}" method="POST" style="display:inline;">
-            <button type="submit" class="btn-delete">Eliminar</button>
-          </form>
+          <div class="action-buttons">
+            <a href="{{ url_for('grups.edit_grup', id=g.id) }}" class="btn-edit">Editar</a>
+            <form action="{{ url_for('grups.delete_grup_route', id=g.id) }}" method="POST" style="display:inline;">
+              <button type="submit" class="btn-delete">Eliminar</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% endfor %}

@@ -1,0 +1,17 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}{{ noticia.titol }}{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('noticies.llistar_noticies') }}" class="btn mb-3">← Tornar a notícies</a>
+
+<div class="noticia-detall">
+  <h2>{{ noticia.titol }}</h2>
+  <p class="text-muted">Publicada per {{ noticia.autor }} el {{ noticia.data.strftime('%d/%m/%Y %H:%M') }}</p>
+
+  {% if noticia.imatge %}
+    <img src="{{ url_for('static', filename='uploads/noticies/' + noticia.imatge) }}" class="img-fluid mb-4" style="max-width: 600px;">
+  {% endif %}
+
+  <p style="font-size: 18px;">{{ noticia.cos }}</p>
+</div>
+{% endblock %}

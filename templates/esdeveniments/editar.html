@@ -1,0 +1,33 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Editar esdeveniment{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">✏️ Editar esdeveniment</h2>
+
+<form method="POST">
+  <div class="form-group mb-3">
+    <label for="titol">Títol:</label>
+    <input type="text" name="titol" id="titol" value="{{ esdeveniment.title }}" class="form-control" required>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="inici">Inici:</label>
+    <input type="datetime-local" name="inici" id="inici" value="{{ esdeveniment.start|replace(' ', 'T') }}" class="form-control" required>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="fi">Fi (opcional):</label>
+    <input type="datetime-local" name="fi" id="fi" value="{{ esdeveniment.end|replace(' ', 'T') if esdeveniment.end }}" class="form-control">
+  </div>
+
+  <div class="form-group mb-4">
+    <label for="descripcio">Descripció:</label>
+    <textarea name="descripcio" id="descripcio" class="form-control" rows="4">{{ esdeveniment.description or '' }}</textarea>
+  </div>
+
+  <div class="text-center">
+    <button type="submit" class="btn btn-primary">Desar canvis</button>
+    <a href="{{ url_for('esdeveniments.llistar_esdeveniments') }}" class="btn">Cancel·lar</a>
+  </div>
+</form>
+{% endblock %}

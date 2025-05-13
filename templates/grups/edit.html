@@ -2,12 +2,16 @@
 {% block title %}Editar Grup{% endblock %}
 
 {% block content %}
-<h2>Editar Grup</h2>
-<form method="POST" action="{{ url_for('grups.edit_grup', id=grup._id) }}">
-  <div>
-    <label for="nom">Nom:</label>
-    <input type="text" name="nom" id="nom" value="{{ grup.nom }}" required>
-  </div>
-  <button type="submit" class="btn-edit">Guardar Canvis</button>
-</form>
+<div class="container">
+  <h2>Editar Grup</h2>
+  <form method="POST" action="{{ url_for('grups.edit_grup', id=grup.id) }}">
+    <div class="form-group">
+      <label for="nom">Nom:</label>
+      <input type="text" name="nom" id="nom" value="{{ grup.nom }}" required>
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn-edit">Guardar Canvis</button>
+    </div>
+  </form>
+</div>
 {% endblock %}
