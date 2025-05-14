@@ -1,0 +1,65 @@
+{% extends "partials/full_layout.html" %}
+{% block title %}Afegir Alumne{% endblock %}
+{% block content %}
+  <h2>Afegir Alumne</h2>
+
+  <!-- Missatges flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, msg in messages %}
+          <li class="{{ category }}">{{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('alumnes.add_alumne_route') }}">
+    <div>
+      <label for="nom">Nom:</label>
+      <input type="text" name="nom" id="nom" required>
+    </div>
+
+    <div>
+      <label for="cognoms">Cognoms:</label>
+      <input type="text" name="cognoms" id="cognoms" required>
+    </div>
+
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email">
+    </div>
+
+    <div>
+      <label for="grup">Grup:</label>
+      <select name="grup" id="grup" required>
+        <option value="">-- Selecciona un grup --</option>
+        {% for g in grups %}
+          <option value="{{ g._id }}">{{ g.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label for="cicle_id">Cicle:</label>
+      <select name="cicle_id" id="cicle_id" required>
+        <option value="">-- Selecciona un cicle --</option>
+        {% for c in cicles %}
+          <option value="{{ c._id }}">{{ c.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label for="curs">Curs:</label>
+      <select name="curs" id="curs" required>
+        <option value="">-- Selecciona un curs --</option>
+        <option value="1r">1r</option>
+        <option value="2n">2n</option>
+        <!-- Afegeix més opcions si cal -->
+      </select>
+    </div>
+
+    <button type="submit">Afegir Alumne</button>
+  </form>
+{% endblock %}

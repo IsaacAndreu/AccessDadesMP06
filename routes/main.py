@@ -1,9 +1,14 @@
-from flask import Blueprint, render_template, session, redirect, url_for
+from flask import Blueprint, redirect, session, url_for
 
 main_bp = Blueprint("main", __name__)
 
 @main_bp.route("/")
 def index():
-    if "teacher_id" not in session:
-        return redirect(url_for("auth.login"))
-    return render_template("index.html")
+    """
+    Redirecciona l'usuari segons si està autenticat o no.
+    - Si hi ha sessió activa, va al dashboard.
+    - Si no, porta a la pàgina de login.
+    """
+    if "teacher_id" in session:
+        return redirect(url_for("professors.dashboard"))
+    return redirect(url_for("auth.login"))

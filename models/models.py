@@ -17,7 +17,7 @@ class Grup(db.Model):
 class Alumne(db.Model):
     __tablename__ = 'alumnes_oracle'
 
-    id = db.Column(db.Integer, primary_key=True)  # Gestionat per trigger a Oracle
+    id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(50), nullable=False)
     cognoms = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100))
@@ -25,6 +25,6 @@ class Alumne(db.Model):
     cicle_id = db.Column(db.Integer, db.ForeignKey('cicles_oracle.id'))
     curs = db.Column(db.String(10))
 
-    # Relacions opcionals si vols accedir a l'objecte directament
-    grup = db.relationship("Grup", backref="alumnes")
-    cicle = db.relationship("Cicle", backref="alumnes")
+    grup = db.relationship("oracle_models.GrupsOracle", backref="alumnes", foreign_keys=[grup_id])
+    cicle = db.relationship("oracle_models.Cicle", backref="alumnes", foreign_keys=[cicle_id])
+

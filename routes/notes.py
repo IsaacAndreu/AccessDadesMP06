@@ -1,17 +1,17 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from bson.objectid import ObjectId
-from extensions import login_required
-from dao.notes_dao import *  # Si tens les funcions dins del fitxer
-from weasyprint import CSS
-from flask import render_template, make_response, session
-from weasyprint import HTML
-import io
+from weasyprint import HTML, CSS
 from datetime import datetime
+import io
+
+from extensions import login_required
+from dao.notes_dao import *
 from dao.professors_dao import get_professor_by_id
 from dao.assignatures_dao import get_assignatura_by_id
 
 notes_bp = Blueprint("notes", __name__)
 
+# --- Llistar totes les notes (amb cerca opcional per nom d'alumne) ---
 @notes_bp.route("/")
 @login_required
 def llista_notes():
@@ -29,7 +29,7 @@ def llista_notes():
 
     return render_template("notes/llista.html", notes=notes, alumnes_dict=alumnes_dict, assignatures_dict=assignatures_dict)
 
-
+# --- Afegir nova nota ---
 @notes_bp.route("/add", methods=["GET", "POST"])
 @login_required
 def add_nota_route():
@@ -41,13 +41,13 @@ def add_nota_route():
 
         if not alumne_id or not assignatura_id or not ra_nom or nota == "":
             flash("Tots els camps són obligatoris.", "error")
-            return redirect(url_for("notes.add_nota"))
+            return redirect(url_for("notes.add_nota_route"))
 
         try:
             nota = float(nota)
         except ValueError:
             flash("La nota ha de ser un número.", "error")
-            return redirect(url_for("notes.add_nota"))
+            return redirect(url_for("notes.add_nota_route"))
 
         nova_nota = {
             "alumne_id": ObjectId(alumne_id),
@@ -63,7 +63,7 @@ def add_nota_route():
     assignatures = get_assignatures_amb_ras()
     return render_template("notes/afegir.html", alumnes=alumnes, assignatures=assignatures)
 
-
+# --- Estadístiques agregades per assignatura, grup i cicle ---
 @notes_bp.route("/stats")
 @login_required
 def estadistiques_notes():
@@ -77,26 +77,23 @@ def estadistiques_notes():
 
     for nota in notes:
         assignatura_id = str(nota.get("assignatura_id"))
-        alumne_id = str(nota.get("alumne_id"))
-        alumne = alumnes.get(alumne_id)
-        if not alumne: continue
+        alumne = alumnes.get(str(nota.get("alumne_id")))
+        if not alumne:
+            continue
 
-        grup_id = str(alumne.get("grup_id", ""))
-        cicle_id = str(alumne.get("cicle_id", ""))
         valor = nota.get("nota")
-        if valor is None: continue
+        if valor is None:
+            continue
 
         assignatura_stats.setdefault(assignatura_id, []).append(valor)
-        if grup_id:
-            grup_stats.setdefault(grup_id, []).append(valor)
-        if cicle_id:
-            cicle_stats.setdefault(cicle_id, []).append(valor)
+        grup_stats.setdefault(str(alumne.get("grup_id", "")), []).append(valor)
+        cicle_stats.setdefault(str(alumne.get("cicle_id", "")), []).append(valor)
 
     def calcula_mitjanes(diccionari, noms):
         return [{
             "nom": noms.get(id_, "Desconegut"),
             "mitjana": round(sum(valors) / len(valors), 2) if valors else 0
-        } for id_, valors in diccionari.items()]
+        } for id_, valors in diccionari.items() if id_]
 
     stats = {
         "assignatures": calcula_mitjanes(assignatura_stats, assignatures),
@@ -106,7 +103,7 @@ def estadistiques_notes():
 
     return render_template("notes/stats.html", stats=stats)
 
-
+# --- Editar nota existent ---
 @notes_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 def edit_nota(id):
@@ -129,12 +126,10 @@ def edit_nota(id):
         flash("Nota actualitzada correctament.", "success")
         return redirect(url_for("notes.llista_notes"))
 
-    # Conversions per evitar errors al renderitzat
     nota["_id"] = str(nota["_id"])
     nota["alumne_id"] = str(nota["alumne_id"])
     nota["assignatura_id"] = str(nota["assignatura_id"])
 
-    # Afegim noms visibles al template
     alumne = get_alumne_by_id(nota["alumne_id"])
     assignatura = get_assignatura_by_id(nota["assignatura_id"])
 
@@ -144,6 +139,7 @@ def edit_nota(id):
 
     return render_template("notes/edit.html", nota=nota)
 
+# --- Eliminar una nota ---
 @notes_bp.route("/delete/<id>", methods=["POST"])
 @login_required
 def delete_nota_route(id):
@@ -154,7 +150,7 @@ def delete_nota_route(id):
         flash("No s'ha pogut eliminar la nota.", "error")
     return redirect(url_for("notes.llista_notes"))
 
-
+# --- Generar informe HTML per un alumne ---
 @notes_bp.route("/informe/<alumne_id>")
 @login_required
 def informe_alumne(alumne_id):
@@ -171,20 +167,26 @@ def informe_alumne(alumne_id):
         assignatura_id = str(nota["assignatura_id"])
         ra_nom = nota["ra_id"]
         valor = nota["nota"]
+
         informe.setdefault(assignatura_id, {
             "assignatura_nom": assignatures_dict.get(assignatura_id, {}).get("nom", "Desconeguda"),
             "notes_ra": [],
             "mitjana": None
         })["notes_ra"].append({"ra_nom": ra_nom, "nota": valor})
 
+    # Càlcul de mitjana ponderada
     for assignatura_id, dades in informe.items():
         assignatura = assignatures_dict.get(assignatura_id)
         ras = assignatura.get("ras", []) if assignatura else []
-        total_pes = sum([next((ra.get("ponderacio", 0) for ra in ras if ra["nom"] == nota["ra_nom"]), 0)
-                         for nota in dades["notes_ra"]])
-        total_ponderat = sum([nota["nota"] * next((ra.get("ponderacio", 0)
-                               for ra in ras if ra["nom"] == nota["ra_nom"]), 0)
-                               for nota in dades["notes_ra"]])
+        total_pes = sum([
+            next((ra.get("ponderacio", 0) for ra in ras if ra["nom"] == nota["ra_nom"]), 0)
+            for nota in dades["notes_ra"]
+        ])
+        total_ponderat = sum([
+            nota["nota"] * next((ra.get("ponderacio", 0)
+            for ra in ras if ra["nom"] == nota["ra_nom"]), 0)
+            for nota in dades["notes_ra"]
+        ])
 
         if total_pes > 0:
             dades["mitjana"] = round(total_ponderat / total_pes, 2)
@@ -192,33 +194,21 @@ def informe_alumne(alumne_id):
     data = datetime.today().strftime("%d/%m/%Y")
     return render_template("notes/informe.html", alumne=alumne, informe=informe, current_date=data, pdf=False)
 
-
-from flask import render_template, make_response
-from weasyprint import HTML
-import io
-
-from datetime import datetime
-
-from flask import render_template, make_response, session
-from weasyprint import HTML
-import io
-from datetime import datetime
-from dao.professors_dao import get_professor_by_id  # ⬅️ afegit
-
+# --- Generar informe PDF amb WeasyPrint ---
 @notes_bp.route("/alumne/<alumne_id>/informe/pdf")
 @login_required
 def exportar_informe_pdf(alumne_id):
     alumne = get_alumne_by_id(alumne_id)
     informe = get_informe_per_alumne(alumne_id)
     data = datetime.today().strftime("%d/%m/%Y")
-    professor = get_professor_by_id(session["teacher_id"])  # ⬅️ nou
+    professor = get_professor_by_id(session["teacher_id"])
 
     html = render_template(
         "pdf/informe_pdf.html",
         alumne=alumne,
         informe=informe,
         current_date=data,
-        professor=professor  # ⬅️ passem el professor
+        professor=professor
     )
 
     pdf_io = io.BytesIO()
@@ -230,6 +220,6 @@ def exportar_informe_pdf(alumne_id):
 
     response = make_response(pdf_io.read())
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'inline; filename=informe_{alumne['nom']}_{alumne['cognoms']}.pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=informe_{alumne["nom"]}_{alumne["cognoms"]}.pdf'
 
     return response

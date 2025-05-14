@@ -3,17 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Centre Educatiu{% endblock %}</title>
+
+  <!-- Estils generals -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-  <!-- FullCalendar CSS -->
+  <!-- Estils de FullCalendar -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 </head>
+
 <body data-theme="{{ session.get('tema', 'clar') }}">
 
-  {% block layout %}{% endblock %}
+  {% block layout %}
+    <main>
+      <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
 
-  <!-- FullCalendar JS -->
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  {% endblock %}
+
+  <!-- Scripts de FullCalendar -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+  <!-- Bloc opcional per afegir JS extra -->
+  {% block scripts %}{% endblock %}
 
 </body>
 </html>

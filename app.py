@@ -3,7 +3,7 @@ from config import Config
 from extensions import mongo, db
 from routes.cicles import cicles_bp
 from routes.grups import grups_bp
-from models.oracle_models import GrupsOracle, CiclesOracle
+from models.oracle_models import GrupsOracle, Cicle
 from models import oracle_models
 from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
@@ -71,3 +71,4 @@ def create_app():
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True, host="0.0.0.0")
+

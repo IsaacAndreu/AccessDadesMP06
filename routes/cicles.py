@@ -10,12 +10,14 @@ from dao.oracle_cicles_dao import (
 
 cicles_bp = Blueprint("cicles", __name__)
 
+# Mostra la llista de cicles disponibles
 @cicles_bp.route("/", methods=["GET"])
 @login_required
 def llista_cicles():
     cicles = get_cicles()
     return render_template("cicles/llista.html", cicles=cicles)
 
+# Afegeix un nou cicle (GET per mostrar formulari, POST per afegir)
 @cicles_bp.route("/add", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -28,12 +30,13 @@ def add_cicle_route():
             flash("El nom del cicle és obligatori.", "error")
             return redirect(url_for("cicles.add_cicle_route"))
 
-        add_cicle(nom, descripcio)
+        add_cicle(nom.strip(), descripcio.strip() if descripcio else "")
         flash("Cicle creat correctament.", "success")
         return redirect(url_for("cicles.llista_cicles"))
 
     return render_template("cicles/afegir.html")
 
+# Edita un cicle existent
 @cicles_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -51,12 +54,13 @@ def edit_cicle(id):
             flash("El nom del cicle és obligatori.", "error")
             return redirect(url_for("cicles.edit_cicle", id=id))
 
-        update_cicle(id, nom, descripcio)
+        update_cicle(id, nom.strip(), descripcio.strip() if descripcio else "")
         flash("Cicle actualitzat correctament.", "success")
         return redirect(url_for("cicles.llista_cicles"))
 
     return render_template("cicles/edit.html", cicle=cicle)
 
+# Elimina un cicle identificat pel seu ID (només via POST)
 @cicles_bp.route("/delete/<int:id>", methods=["POST"])
 @login_required
 @admin_required

@@ -6,7 +6,7 @@ class GrupsOracle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(50), nullable=False)
 
-class CiclesOracle(db.Model):
+class Cicle(db.Model):
     __tablename__ = 'cicles_oracle'
     __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)

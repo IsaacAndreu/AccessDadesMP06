@@ -7,18 +7,21 @@ from dao.oracle_grups_dao import (
 
 grups_bp = Blueprint("grups", __name__)
 
+# Llista tots els grups disponibles
 @grups_bp.route("/", methods=["GET"])
 @login_required
 def llista_grups():
     grups = get_grups()
     return render_template("grups/llista.html", grups=grups)
 
+# Afegeix un nou grup (GET per mostrar el formulari, POST per processar-lo)
 @grups_bp.route("/add", methods=["GET", "POST"])
 @login_required
 @admin_required
 def add_grup_route():
     if request.method == "POST":
-        nom = request.form.get("nom")
+        nom = request.form.get("nom", "").strip()
+
         if not nom:
             flash("El nom del grup és obligatori.", "error")
             return redirect(url_for("grups.add_grup_route"))
@@ -26,8 +29,10 @@ def add_grup_route():
         add_grup(nom)
         flash("Grup afegit correctament.", "success")
         return redirect(url_for("grups.llista_grups"))
+
     return render_template("grups/afegir.html")
 
+# Edita un grup existent
 @grups_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -38,7 +43,8 @@ def edit_grup(id):
         return redirect(url_for("grups.llista_grups"))
 
     if request.method == "POST":
-        nom = request.form.get("nom")
+        nom = request.form.get("nom", "").strip()
+
         if not nom:
             flash("El nom del grup és obligatori.", "error")
             return redirect(url_for("grups.edit_grup", id=id))
@@ -49,6 +55,7 @@ def edit_grup(id):
 
     return render_template("grups/edit.html", grup=grup)
 
+# Elimina un grup a partir del seu ID (només accessible via POST)
 @grups_bp.route("/delete/<int:id>", methods=["POST"])
 @login_required
 @admin_required

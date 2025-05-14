@@ -9,24 +9,26 @@ from dao.noticies_dao import (
 )
 from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
-import os
 from datetime import datetime
+import os
 
 noticies_bp = Blueprint("noticies", __name__, url_prefix="/noticies")
 
+# --- Vista principal: llista totes les notícies ---
 @noticies_bp.route("/")
 @login_required
 def llistar_noticies():
     noticies = get_all_noticies()
     return render_template("noticies/llista.html", noticies=noticies)
 
+# --- Formulari per afegir una nova notícia ---
 @noticies_bp.route("/afegir", methods=["GET", "POST"])
 @login_required
 @admin_required
 def formulari_afegir_noticia():
     if request.method == "POST":
-        titol = request.form.get("titol")
-        cos = request.form.get("cos")
+        titol = request.form.get("titol", "").strip()
+        cos = request.form.get("cos", "").strip()
         imatge = request.files.get("imatge")
 
         if not titol or not cos:
@@ -53,6 +55,7 @@ def formulari_afegir_noticia():
 
     return render_template("noticies/afegir.html")
 
+# --- Editar una notícia existent ---
 @noticies_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -63,8 +66,8 @@ def editar_noticia_route(id):
         return redirect(url_for("noticies.llistar_noticies"))
 
     if request.method == "POST":
-        titol = request.form.get("titol")
-        cos = request.form.get("cos")
+        titol = request.form.get("titol", "").strip()
+        cos = request.form.get("cos", "").strip()
         imatge = request.files.get("imatge")
         nom_imatge = noticia.get("imatge")
 
@@ -85,6 +88,7 @@ def editar_noticia_route(id):
 
     return render_template("noticies/edit.html", noticia=noticia)
 
+# --- Eliminar una notícia per ID ---
 @noticies_bp.route("/delete/<id>", methods=["POST"])
 @login_required
 @admin_required
@@ -93,6 +97,7 @@ def eliminar_noticia_route(id):
     flash("Notícia eliminada.", "success")
     return redirect(url_for("noticies.llistar_noticies"))
 
+# --- Detall d'una notícia individual ---
 @noticies_bp.route("/<id>")
 @login_required
 def veure_noticia(id):
