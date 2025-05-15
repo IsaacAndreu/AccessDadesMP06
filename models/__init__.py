@@ -1,1 +1,1 @@
-from .models import Cicle, Grup, Alumne  # o el que facis servir
+from .oracle_models import Cicle, Grup, Alumne  # o el que facis servir

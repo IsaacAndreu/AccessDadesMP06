@@ -1,8 +1,20 @@
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import mongo
 
 auth_bp = Blueprint("auth", __name__)
+
+# Funció per validar nom i cognoms (només lletres i espais)
+def validar_nom_cognoms(cadena):
+    if not re.match("^[A-Za-zÀ-ÿ\s]+$", cadena):  # Accepta lletres, accents i espais
+        return False
+    return True
+
+# Funció per validar l'email
+def validar_email(email):
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email) is not None
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -14,6 +26,11 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
+
+        # Validació de l'email
+        if not validar_email(email):
+            flash("Email no vàlid.", "error")
+            return redirect(url_for("auth.login"))
 
         teacher = mongo.db.professors.find_one({"email": email})
 
@@ -40,14 +57,24 @@ def register():
             password = request.form.get("password")
             confirm_password = request.form.get("confirm_password")
 
+            # Validació dels camps nom i cognoms
+            if not validar_nom_cognoms(nom) or not validar_nom_cognoms(cognoms):
+                flash("Nom i cognoms només poden contenir lletres i espais.", "error")
+                return redirect(url_for("auth.register"))
+
             # Validació de contrasenya
             if password != confirm_password:
-                flash("Les contrasenyes no coincideixen.")
+                flash("Les contrasenyes no coincideixen.", "error")
+                return redirect(url_for("auth.register"))
+
+            # Validació de l'email
+            if not validar_email(email):
+                flash("Email no vàlid.", "error")
                 return redirect(url_for("auth.register"))
 
             # Comprovació si l'email ja existeix
             if mongo.db.professors.find_one({"email": email}):
-                flash("Aquest email ja està registrat.")
+                flash("Aquest email ja està registrat.", "error")
                 return redirect(url_for("auth.register"))
 
             hashed_password = generate_password_hash(password)
@@ -61,11 +88,11 @@ def register():
             }
 
             mongo.db.professors.insert_one(teacher)
-            flash("Registre completat, ara pots iniciar sessió.")
+            flash("Registre completat, ara pots iniciar sessió.", "success")
             return redirect(url_for("auth.login"))
 
         except Exception as e:
-            flash("Error en el registre: " + str(e))
+            flash("Error en el registre: " + str(e), "error")
             return redirect(url_for("auth.register"))
 
     return render_template("auth/register.html")

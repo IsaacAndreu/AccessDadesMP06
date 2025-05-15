@@ -1,7 +1,9 @@
 from extensions import db
-
-
 def crear_procediments_oracle():
+    """
+    Funció per crear els procediments necessaris a la base de dades Oracle per gestionar les seqüències
+    i triggers de les taules `grups_oracle` i `cicles_oracle`.
+    """
     sql_procediments = [
         # Sequence GRUPS
         "BEGIN EXECUTE IMMEDIATE 'CREATE SEQUENCE grups_seq START WITH 1 INCREMENT BY 1'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
@@ -42,6 +44,7 @@ def crear_procediments_oracle():
         """
     ]
 
+    # Executar cada procediment SQL
     with db.engine.begin() as conn:
         for sql in sql_procediments:
             conn.connection.cursor().execute(sql)

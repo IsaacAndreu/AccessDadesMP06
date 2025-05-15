@@ -1,4 +1,18 @@
+# CORE FRAMEWORK
 Flask==2.3.3
+Werkzeug==2.3.6
+
+# MONGODB
 Flask-PyMongo==2.3.0
 pymongo==4.3.3
-Werkzeug==2.3.6
+
+# ORACLE & SQLALCHEMY
+Flask-SQLAlchemy==3.0.4
+SQLAlchemy==2.0.19
+cx-Oracle==8.4.1
+
+# ENTORN I CONFIGURACIÓ
+python-dotenv==1.0.0
+
+# OPCIONAL / PRODUCCIÓ
+gunicorn==20.1.0    # servidor WSGI per desplegament

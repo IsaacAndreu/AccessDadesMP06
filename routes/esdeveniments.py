@@ -1,9 +1,16 @@
+import re
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from extensions import login_required, admin_required, mongo
 from bson.objectid import ObjectId
 from datetime import datetime
 
 esdeveniments_bp = Blueprint("esdeveniments", __name__, url_prefix="/esdeveniments")
+
+# Funció per validar que el títol només contingui lletres i espais
+def validar_titol(cadena):
+    if not re.match("^[A-Za-zÀ-ÿ\s]+$", cadena):  # Accepta lletres, accents i espais
+        return False
+    return True
 
 @esdeveniments_bp.route("/")
 @login_required
@@ -32,10 +39,16 @@ def afegir_esdeveniment():
         fi = request.form.get("fi", "").strip()
         descripcio = request.form.get("descripcio", "").strip()
 
+        # Validació del títol i la data d'inici
         if not titol or not inici:
             flash("El títol i la data d'inici són obligatoris.", "error")
             return redirect(url_for("esdeveniments.afegir_esdeveniment"))
 
+        if not validar_titol(titol):
+            flash("El títol només pot contenir lletres i espais.", "error")
+            return redirect(url_for("esdeveniments.afegir_esdeveniment"))
+
+        # Afegir l'esdeveniment a la base de dades
         nou_esdeveniment = {
             "title": titol,
             "start": inici,
@@ -58,8 +71,12 @@ def afegir_des_del_calendari():
     title = data.get("title", "").strip()
     start = data.get("start", "").strip()
 
+    # Validació del títol
     if not title or not start:
         return jsonify({"status": "error", "message": "Falten dades"}), 400
+
+    if not validar_titol(title):
+        return jsonify({"status": "error", "message": "El títol només pot contenir lletres i espais"}), 400
 
     nou_esdeveniment = {
         "title": title,
@@ -85,6 +102,15 @@ def editar_esdeveniment(id):
         inici = request.form.get("inici", "").strip()
         fi = request.form.get("fi", "").strip()
         descripcio = request.form.get("descripcio", "").strip()
+
+        # Validació del títol
+        if not titol or not inici:
+            flash("El títol i la data d'inici són obligatoris.", "error")
+            return redirect(url_for("esdeveniments.editar_esdeveniment", id=id))
+
+        if not validar_titol(titol):
+            flash("El títol només pot contenir lletres i espais.", "error")
+            return redirect(url_for("esdeveniments.editar_esdeveniment", id=id))
 
         nova_dades = {
             "title": titol,

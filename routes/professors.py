@@ -6,8 +6,16 @@ from werkzeug.security import generate_password_hash
 from bson import ObjectId
 from werkzeug.utils import secure_filename
 import os
+import re
 
 professors_bp = Blueprint("professors", __name__)
+
+# Funció per validar noms i cognoms (només lletres i espais)
+def validar_nom_cognom(nom):
+    # Comprova que només es facin servir lletres i espais
+    if not re.match("^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)*$", nom):
+        return False
+    return True
 
 # -- Vista principal del dashboard docent --
 @professors_bp.route("/dashboard")
@@ -96,6 +104,15 @@ def add_professor_route():
         cognoms = request.form.get("cognoms", "").strip()
         email = request.form.get("email", "").strip()
 
+        # Validar que els noms i cognoms només tinguin lletres
+        if not validar_nom_cognom(nom):
+            flash("Nom invàlid. Només es permeten lletres i espais.", "error")
+            return redirect(url_for("professors.add_professor_route"))
+
+        if not validar_nom_cognom(cognoms):
+            flash("Cognoms invàlids. Només es permeten lletres i espais.", "error")
+            return redirect(url_for("professors.add_professor_route"))
+
         if not nom or not cognoms or not email:
             flash("Nom, cognoms i email són obligatoris.", "error")
             return redirect(url_for("professors.add_professor_route"))
@@ -120,6 +137,15 @@ def edit_professor(prof_id):
         nom = request.form.get("nom", "").strip()
         cognoms = request.form.get("cognoms", "").strip()
         email = request.form.get("email", "").strip()
+
+        # Validar que els noms i cognoms només tinguin lletres
+        if not validar_nom_cognom(nom):
+            flash("Nom invàlid. Només es permeten lletres i espais.", "error")
+            return redirect(url_for("professors.edit_professor", prof_id=prof_id))
+
+        if not validar_nom_cognom(cognoms):
+            flash("Cognoms invàlids. Només es permeten lletres i espais.", "error")
+            return redirect(url_for("professors.edit_professor", prof_id=prof_id))
 
         if not nom or not cognoms or not email:
             flash("Tots els camps són obligatoris.", "error")

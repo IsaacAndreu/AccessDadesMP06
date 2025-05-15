@@ -1,65 +1,107 @@
+/* ---------- CONFIGURACIÓ DE PÀGINA ---------- */
 @page {
   size: A4;
   margin: 2.5cm 2cm 3.5cm 2cm;
 
   @bottom-left {
     content: "Escola Exemplar";
+    font-size: 10pt;
+    color: #aaa;
   }
 
   @bottom-right {
     content: "Pàgina " counter(page) " de " counter(pages);
+    font-size: 10pt;
+    color: #aaa;
   }
 }
 
+/* ---------- CONFIGURACIÓ GENERAL ---------- */
 body {
   font-family: 'Helvetica', sans-serif;
   font-size: 11pt;
   color: #333;
   line-height: 1.5;
+  background-color: #f9f9f9;
 }
 
+/* ---------- TÍTOLS I SECCIONS ---------- */
 h2 {
   text-align: center;
-  font-size: 22pt;
-  margin-bottom: 5px;
+  font-size: 24pt;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #2c3e50;
 }
 
 h3 {
   font-size: 16pt;
-  color: #1a73e8;
+  color: #2980b9;
   margin-top: 30px;
-  border-bottom: 1px solid #ccc;
   padding-bottom: 5px;
+  border-bottom: 2px solid #2980b9;
 }
 
+h4 {
+  font-size: 14pt;
+  color: #2c3e50;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+/* ---------- TAULA DE NOTES ---------- */
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 10.5pt;
   margin-top: 10px;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 th, td {
-  border: 1px solid #ccc;
-  padding: 6px 10px;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
   text-align: left;
+  vertical-align: middle;
 }
 
 th {
   background-color: #f4f4f4;
   font-weight: bold;
+  color: #34495e;
 }
 
+td {
+  color: #333;
+}
+
+/* Alternar colors de les files */
 tr:nth-child(even) {
-  background-color: #fafafa;
+  background-color: #f9f9f9;
+}
+
+tr:nth-child(odd) {
+  background-color: #ffffff;
 }
 
 tr:last-child {
   font-weight: bold;
-  background-color: #f1f1f1;
+  background-color: #ecf0f1;
 }
 
+td.total {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+td.mitjana {
+  color: #1abc9c;
+}
+
+/* ---------- FOOTER ---------- */
 .footer-note {
   position: fixed;
   bottom: 1cm;
@@ -69,6 +111,50 @@ tr:last-child {
   display: flex;
   justify-content: space-between;
   color: #666;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid #ddd;
   padding-top: 5px;
 }
+
+/* ---------- CONTENIDORS DE TEXT ---------- */
+.container {
+  margin-top: 20px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.container p {
+  font-size: 12pt;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* ---------- BOTONS D'ACCIONS ---------- */
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background-color: #2980b9;
+}
+
+.btn:focus, .btn:active {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ---------- FONT SIZE AND WEIGHT TO TEXT */
+h2, h3, h4, th, td {
+  font-family: 'Arial', sans-serif;
+  font-weight: normal;
+  line-height: 1.5;
+}
+

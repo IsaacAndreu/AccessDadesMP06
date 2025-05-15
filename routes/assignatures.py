@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from bson.objectid import ObjectId
 from extensions import login_required, admin_required
@@ -10,7 +11,15 @@ from dao.assignatures_dao import (
 
 assignatures_bp = Blueprint("assignatures", __name__)
 
-# Carrega les dades necessàries per al formulari (reutilitzat a afegir i editar)
+# Funció per validar que el nom de l'assignatura només conté lletres i espais
+
+def validar_nom(nom):
+    # Accepta lletres, accents, espais, números i dos punts
+    if not re.match(r"^[A-Za-zÀ-ÿ0-9\s:]+$", nom):
+        return False
+    return True
+
+# Funció per carregar les dades necessàries per al formulari (reutilitzat a afegir i editar)
 def carregar_dades_formulari():
     return get_courses(), get_grups(), get_cicles(), get_professors()
 
@@ -32,6 +41,11 @@ def add_assignatura_route():
         descripcio = request.form.get("descripcio")
         ra_names = request.form.getlist("ra_name[]")
         ra_percentages = request.form.getlist("ra_percentage[]")
+
+        # Validació del nom
+        if not nom or not validar_nom(nom):
+            flash("El nom de l'assignatura només pot contenir lletres i espais.", "error")
+            return redirect(url_for("assignatures.add_assignatura_route"))
 
         # Construcció dels resultats d'aprenentatge amb validació de ponderació
         ras = []
@@ -96,6 +110,11 @@ def edit_assignatura(id):
         descripcio = request.form.get("descripcio")
         ra_names = request.form.getlist("ra_name[]")
         ra_percentages = request.form.getlist("ra_percentage[]")
+
+        # Validació del nom
+        if not nom or not validar_nom(nom):
+            flash("El nom de l'assignatura només pot contenir lletres i espais.", "error")
+            return redirect(url_for("assignatures.edit_assignatura", id=id))
 
         ras = []
         for name, perc in zip(ra_names, ra_percentages):

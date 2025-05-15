@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from extensions import login_required, admin_required
 from dao.oracle_cicles_dao import (
@@ -9,6 +10,12 @@ from dao.oracle_cicles_dao import (
 )
 
 cicles_bp = Blueprint("cicles", __name__)
+
+# Funció per validar que el nom només contingui lletres i espais
+def validar_nom_descripcio(cadena):
+    if not re.match("^[A-Za-zÀ-ÿ\s]+$", cadena):  # Accepta lletres, accents i espais
+        return False
+    return True
 
 # Mostra la llista de cicles disponibles
 @cicles_bp.route("/", methods=["GET"])
@@ -26,8 +33,13 @@ def add_cicle_route():
         nom = request.form.get("nom")
         descripcio = request.form.get("descripcio")
 
-        if not nom:
-            flash("El nom del cicle és obligatori.", "error")
+        # Validació del nom i la descripció per evitar caràcters no vàlids
+        if not nom or not validar_nom_descripcio(nom):
+            flash("El nom del cicle és obligatori i només pot contenir lletres i espais.", "error")
+            return redirect(url_for("cicles.add_cicle_route"))
+
+        if descripcio and not validar_nom_descripcio(descripcio):
+            flash("La descripció només pot contenir lletres i espais.", "error")
             return redirect(url_for("cicles.add_cicle_route"))
 
         add_cicle(nom.strip(), descripcio.strip() if descripcio else "")
@@ -50,8 +62,13 @@ def edit_cicle(id):
         nom = request.form.get("nom")
         descripcio = request.form.get("descripcio")
 
-        if not nom:
-            flash("El nom del cicle és obligatori.", "error")
+        # Validació del nom i la descripció per evitar caràcters no vàlids
+        if not nom or not validar_nom_descripcio(nom):
+            flash("El nom del cicle és obligatori i només pot contenir lletres i espais.", "error")
+            return redirect(url_for("cicles.edit_cicle", id=id))
+
+        if descripcio and not validar_nom_descripcio(descripcio):
+            flash("La descripció només pot contenir lletres i espais.", "error")
             return redirect(url_for("cicles.edit_cicle", id=id))
 
         update_cicle(id, nom.strip(), descripcio.strip() if descripcio else "")

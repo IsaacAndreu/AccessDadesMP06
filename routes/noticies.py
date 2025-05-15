@@ -11,8 +11,18 @@ from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
 from datetime import datetime
 import os
+import re  # Importar per la validació de caràcters
 
 noticies_bp = Blueprint("noticies", __name__, url_prefix="/noticies")
+
+
+# --- Funció per validar el títol i cos de la notícia ---
+def validar_nom_cos(valor):
+    # Validar que només conté lletres i espais
+    if not re.match("^[A-Za-zÀ-ÿ\s]+$", valor):
+        return False
+    return True
+
 
 # --- Vista principal: llista totes les notícies ---
 @noticies_bp.route("/")
@@ -20,6 +30,7 @@ noticies_bp = Blueprint("noticies", __name__, url_prefix="/noticies")
 def llistar_noticies():
     noticies = get_all_noticies()
     return render_template("noticies/llista.html", noticies=noticies)
+
 
 # --- Formulari per afegir una nova notícia ---
 @noticies_bp.route("/afegir", methods=["GET", "POST"])
@@ -31,8 +42,13 @@ def formulari_afegir_noticia():
         cos = request.form.get("cos", "").strip()
         imatge = request.files.get("imatge")
 
+        # Validació dels camps
         if not titol or not cos:
             flash("Tots els camps són obligatoris.", "error")
+            return redirect(url_for("noticies.formulari_afegir_noticia"))
+
+        if not validar_nom_cos(titol) or not validar_nom_cos(cos):
+            flash("Nom o cos contenen caràcters no vàlids. Només es permeten lletres i espais.", "error")
             return redirect(url_for("noticies.formulari_afegir_noticia"))
 
         nom_imatge = None
@@ -55,6 +71,7 @@ def formulari_afegir_noticia():
 
     return render_template("noticies/afegir.html")
 
+
 # --- Editar una notícia existent ---
 @noticies_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
@@ -70,6 +87,15 @@ def editar_noticia_route(id):
         cos = request.form.get("cos", "").strip()
         imatge = request.files.get("imatge")
         nom_imatge = noticia.get("imatge")
+
+        # Validació dels camps
+        if not titol or not cos:
+            flash("Tots els camps són obligatoris.", "error")
+            return redirect(url_for("noticies.edit_noticia", id=id))
+
+        if not validar_nom_cos(titol) or not validar_nom_cos(cos):
+            flash("Nom o cos contenen caràcters no vàlids. Només es permeten lletres i espais.", "error")
+            return redirect(url_for("noticies.edit_noticia", id=id))
 
         if imatge and imatge.filename != "":
             nom_imatge = secure_filename(imatge.filename)
@@ -88,6 +114,7 @@ def editar_noticia_route(id):
 
     return render_template("noticies/edit.html", noticia=noticia)
 
+
 # --- Eliminar una notícia per ID ---
 @noticies_bp.route("/delete/<id>", methods=["POST"])
 @login_required
@@ -96,6 +123,7 @@ def eliminar_noticia_route(id):
     eliminar_noticia(id)
     flash("Notícia eliminada.", "success")
     return redirect(url_for("noticies.llistar_noticies"))
+
 
 # --- Detall d'una notícia individual ---
 @noticies_bp.route("/<id>")

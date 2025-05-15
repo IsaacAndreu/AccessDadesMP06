@@ -9,6 +9,7 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3 {
@@ -58,6 +59,7 @@ h1, h2, h3 {
     border-radius: 5px;
     color: #fff;
 }
+
 .logout:hover {
     background-color: #c0392b;
 }
@@ -348,13 +350,10 @@ body[data-theme='fosc'] .styled-table tr:nth-child(even) {
 body[data-theme='fosc'] .btn {
     background-color: #2980b9;
 }
-body {
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
 body * {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 .noticies-grid {
     display: flex;
     flex-wrap: wrap;

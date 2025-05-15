@@ -17,25 +17,25 @@
   <form method="POST" action="{{ url_for('alumnes.add_alumne_route') }}">
     <div>
       <label for="nom">Nom:</label>
-      <input type="text" name="nom" id="nom" required>
+      <input type="text" name="nom" id="nom" value="{{ request.form.nom or '' }}" required>
     </div>
 
     <div>
       <label for="cognoms">Cognoms:</label>
-      <input type="text" name="cognoms" id="cognoms" required>
+      <input type="text" name="cognoms" id="cognoms" value="{{ request.form.cognoms or '' }}" required>
     </div>
 
     <div>
       <label for="email">Email:</label>
-      <input type="email" name="email" id="email">
+      <input type="email" name="email" id="email" value="{{ request.form.email or '' }}">
     </div>
 
     <div>
-      <label for="grup">Grup:</label>
-      <select name="grup" id="grup" required>
+      <label for="grup_id">Grup:</label>
+      <select name="grup_id" id="grup_id" required>
         <option value="">-- Selecciona un grup --</option>
         {% for g in grups %}
-          <option value="{{ g._id }}">{{ g.nom }}</option>
+          <option value="{{ g.id }}" {% if request.form.grup_id == g.id|string %}selected{% endif %}>{{ g.nom }}</option>
         {% endfor %}
       </select>
     </div>
@@ -45,7 +45,7 @@
       <select name="cicle_id" id="cicle_id" required>
         <option value="">-- Selecciona un cicle --</option>
         {% for c in cicles %}
-          <option value="{{ c._id }}">{{ c.nom }}</option>
+          <option value="{{ c.id }}" {% if request.form.cicle_id == c.id|string %}selected{% endif %}>{{ c.nom }}</option>
         {% endfor %}
       </select>
     </div>
@@ -54,8 +54,8 @@
       <label for="curs">Curs:</label>
       <select name="curs" id="curs" required>
         <option value="">-- Selecciona un curs --</option>
-        <option value="1r">1r</option>
-        <option value="2n">2n</option>
+        <option value="1r" {% if request.form.curs == '1r' %}selected{% endif %}>1r</option>
+        <option value="2n" {% if request.form.curs == '2n' %}selected{% endif %}>2n</option>
         <!-- Afegeix més opcions si cal -->
       </select>
     </div>

@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from bson.objectid import ObjectId
 from weasyprint import HTML, CSS
@@ -10,6 +11,13 @@ from dao.professors_dao import get_professor_by_id
 from dao.assignatures_dao import get_assignatura_by_id
 
 notes_bp = Blueprint("notes", __name__)
+
+# --- Funció per validar que el nom i cognoms no tinguin números ni caràcters especials ---
+def validar_nom_cognoms(valor):
+    # Comprova si el valor només té lletres i espais
+    if not re.match("^[A-Za-zÀ-ÿ\s]+$", valor):  # Només lletres i espais
+        return False
+    return True
 
 # --- Llistar totes les notes (amb cerca opcional per nom d'alumne) ---
 @notes_bp.route("/")

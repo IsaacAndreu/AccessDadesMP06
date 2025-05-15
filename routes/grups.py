@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from extensions import login_required, admin_required
 from dao.oracle_grups_dao import (
@@ -6,6 +7,12 @@ from dao.oracle_grups_dao import (
 )
 
 grups_bp = Blueprint("grups", __name__)
+
+# Funció per validar que el nom del grup només contingui lletres i espais
+def validar_nom_grup(nom):
+    if not re.match("^[A-Za-zÀ-ÿ\s]+$", nom):  # Accepta lletres i espais
+        return False
+    return True
 
 # Llista tots els grups disponibles
 @grups_bp.route("/", methods=["GET"])
@@ -22,8 +29,13 @@ def add_grup_route():
     if request.method == "POST":
         nom = request.form.get("nom", "").strip()
 
+        # Validació del nom del grup
         if not nom:
             flash("El nom del grup és obligatori.", "error")
+            return redirect(url_for("grups.add_grup_route"))
+
+        if not validar_nom_grup(nom):
+            flash("El nom del grup només pot contenir lletres i espais.", "error")
             return redirect(url_for("grups.add_grup_route"))
 
         add_grup(nom)
@@ -45,8 +57,13 @@ def edit_grup(id):
     if request.method == "POST":
         nom = request.form.get("nom", "").strip()
 
+        # Validació del nom del grup
         if not nom:
             flash("El nom del grup és obligatori.", "error")
+            return redirect(url_for("grups.edit_grup", id=id))
+
+        if not validar_nom_grup(nom):
+            flash("El nom del grup només pot contenir lletres i espais.", "error")
             return redirect(url_for("grups.edit_grup", id=id))
 
         update_grup(id, nom)
