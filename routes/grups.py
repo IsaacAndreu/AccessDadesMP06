@@ -8,35 +8,35 @@ from dao.oracle_grups_dao import (
 
 grups_bp = Blueprint("grups", __name__)
 
-# Funció per validar que el nom del grup només contingui lletres i espais
 def validar_nom_grup(nom):
-    if not re.match("^[A-Za-zÀ-ÿ\s]+$", nom):  # Accepta lletres i espais
-        return False
-    return True
+    """Valida que el nom del grup només contingui lletres i espais."""
+    return bool(re.match(r"^[A-Za-zÀ-ÿ\s]+$", nom))
 
-# Llista tots els grups disponibles
+def validar_i_obtenir_nom(form, ruta_error, id=None):
+    """Funció auxiliar per validar el nom i retornar el valor o redirigir amb error."""
+    nom = form.get("nom", "").strip()
+    if not nom:
+        flash("El nom del grup és obligatori.", "error")
+        return redirect(url_for(ruta_error, **({"id": id} if id else {}))), None
+    if not validar_nom_grup(nom):
+        flash("El nom del grup només pot contenir lletres i espais.", "error")
+        return redirect(url_for(ruta_error, **({"id": id} if id else {}))), None
+    return None, nom
+
 @grups_bp.route("/", methods=["GET"])
 @login_required
 def llista_grups():
     grups = get_grups()
     return render_template("grups/llista.html", grups=grups)
 
-# Afegeix un nou grup (GET per mostrar el formulari, POST per processar-lo)
 @grups_bp.route("/add", methods=["GET", "POST"])
 @login_required
 @admin_required
 def add_grup_route():
     if request.method == "POST":
-        nom = request.form.get("nom", "").strip()
-
-        # Validació del nom del grup
-        if not nom:
-            flash("El nom del grup és obligatori.", "error")
-            return redirect(url_for("grups.add_grup_route"))
-
-        if not validar_nom_grup(nom):
-            flash("El nom del grup només pot contenir lletres i espais.", "error")
-            return redirect(url_for("grups.add_grup_route"))
+        err_redirect, nom = validar_i_obtenir_nom(request.form, "grups.add_grup_route")
+        if err_redirect:
+            return err_redirect
 
         add_grup(nom)
         flash("Grup afegit correctament.", "success")
@@ -44,7 +44,6 @@ def add_grup_route():
 
     return render_template("grups/afegir.html")
 
-# Edita un grup existent
 @grups_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -55,16 +54,9 @@ def edit_grup(id):
         return redirect(url_for("grups.llista_grups"))
 
     if request.method == "POST":
-        nom = request.form.get("nom", "").strip()
-
-        # Validació del nom del grup
-        if not nom:
-            flash("El nom del grup és obligatori.", "error")
-            return redirect(url_for("grups.edit_grup", id=id))
-
-        if not validar_nom_grup(nom):
-            flash("El nom del grup només pot contenir lletres i espais.", "error")
-            return redirect(url_for("grups.edit_grup", id=id))
+        err_redirect, nom = validar_i_obtenir_nom(request.form, "grups.edit_grup", id=id)
+        if err_redirect:
+            return err_redirect
 
         update_grup(id, nom)
         flash("Grup actualitzat correctament.", "success")
@@ -72,7 +64,6 @@ def edit_grup(id):
 
     return render_template("grups/edit.html", grup=grup)
 
-# Elimina un grup a partir del seu ID (només accessible via POST)
 @grups_bp.route("/delete/<int:id>", methods=["POST"])
 @login_required
 @admin_required

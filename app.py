@@ -3,10 +3,7 @@ from config import Config
 from extensions import mongo, db
 from routes.cicles import cicles_bp
 from routes.grups import grups_bp
-from models.oracle_models import Grup, Cicle
-from models import oracle_models
 from werkzeug.security import generate_password_hash
-from bson.objectid import ObjectId
 from routes.esdeveniments import esdeveniments_bp
 from utils.create_oracle_procedures import crear_procediments_oracle  # Importem la funció
 

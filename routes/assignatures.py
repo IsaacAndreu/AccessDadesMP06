@@ -11,19 +11,39 @@ from dao.assignatures_dao import (
 
 assignatures_bp = Blueprint("assignatures", __name__)
 
-# Funció per validar que el nom de l'assignatura només conté lletres i espais
+# --- Funcions auxiliars ---
 
 def validar_nom(nom):
-    # Accepta lletres, accents, espais, números i dos punts
-    if not re.match(r"^[A-Za-zÀ-ÿ0-9\s:]+$", nom):
-        return False
-    return True
+    """Accepta lletres, accents, espais, números i dos punts."""
+    return bool(re.match(r"^[A-Za-zÀ-ÿ0-9\s:]+$", nom))
 
-# Funció per carregar les dades necessàries per al formulari (reutilitzat a afegir i editar)
 def carregar_dades_formulari():
     return get_courses(), get_grups(), get_cicles(), get_professors()
 
-# Llista totes les assignatures disponibles
+def construir_ras(ra_names, ra_percentages):
+    ras = []
+    for name, perc in zip(ra_names, ra_percentages):
+        if name.strip():
+            try:
+                percentage = float(perc)
+            except ValueError:
+                percentage = 0.0
+            ras.append({"nom": name.strip(), "ponderacio": percentage})
+    return ras
+
+def validar_formulari_assignatura(nom, courses, grups, cicle_id, any_academic, professor_ids, ras):
+    errors = []
+    if not nom or not validar_nom(nom):
+        errors.append("El nom de l'assignatura només pot contenir lletres, espais i caràcters vàlids.")
+    if not all([courses, grups, cicle_id, any_academic, professor_ids]):
+        errors.append("Tots els camps són obligatoris.")
+    total = sum(ra["ponderacio"] for ra in ras)
+    if total != 100:
+        errors.append(f"La suma de les ponderacions dels RAs ha de ser 100%. Actualment suma: {total}%.")
+    return errors
+
+# --- Rutes ---
+
 @assignatures_bp.route("/", methods=["GET"])
 @login_required
 def llista_assignatures():
@@ -31,31 +51,17 @@ def llista_assignatures():
     cursos_dict = get_courses_dict()
     return render_template("assignatures/llista.html", assignatures=assignatures, cursos_dict=cursos_dict)
 
-# Afegeix una nova assignatura (GET per mostrar formulari, POST per processar-lo)
 @assignatures_bp.route("/add", methods=["GET", "POST"])
 @login_required
 @admin_required
 def add_assignatura_route():
     if request.method == "POST":
-        nom = request.form.get("nom")
-        descripcio = request.form.get("descripcio")
+        nom = request.form.get("nom", "").strip()
+        descripcio = request.form.get("descripcio", "").strip()
         ra_names = request.form.getlist("ra_name[]")
         ra_percentages = request.form.getlist("ra_percentage[]")
 
-        # Validació del nom
-        if not nom or not validar_nom(nom):
-            flash("El nom de l'assignatura només pot contenir lletres i espais.", "error")
-            return redirect(url_for("assignatures.add_assignatura_route"))
-
-        # Construcció dels resultats d'aprenentatge amb validació de ponderació
-        ras = []
-        for name, perc in zip(ra_names, ra_percentages):
-            if name.strip():
-                try:
-                    percentage = float(perc)
-                except ValueError:
-                    percentage = 0.0
-                ras.append({"nom": name.strip(), "ponderacio": percentage})
+        ras = construir_ras(ra_names, ra_percentages)
 
         courses = request.form.getlist("courses[]")
         grups = request.form.getlist("grups[]")
@@ -63,18 +69,15 @@ def add_assignatura_route():
         any_academic = request.form.get("any_academic")
         professor_ids = request.form.getlist("professor_ids[]")
 
-        total = sum(ra["ponderacio"] for ra in ras)
-        if total != 100:
-            flash(f"La suma de les ponderacions dels RAs ha de ser 100%. Actualment suma: {total}%", "error")
+        errors = validar_formulari_assignatura(nom, courses, grups, cicle_id, any_academic, professor_ids, ras)
+        if errors:
+            for error in errors:
+                flash(error, "error")
             return redirect(url_for("assignatures.add_assignatura_route"))
 
-        if not nom or not courses or not grups or not cicle_id or not any_academic or not professor_ids:
-            flash("Tots els camps són obligatoris.", "error")
-            return redirect(url_for("assignatures.add_assignatura_route"))
-
-        new_assignatura = {
-            "nom": nom.strip(),
-            "descripcio": descripcio.strip() if descripcio else "",
+        nova_assignatura = {
+            "nom": nom,
+            "descripcio": descripcio,
             "ras": ras,
             "courses": courses,
             "grups": grups,
@@ -83,11 +86,10 @@ def add_assignatura_route():
             "professor_ids": [ObjectId(pid) for pid in professor_ids]
         }
 
-        add_assignatura(new_assignatura)
+        add_assignatura(nova_assignatura)
         flash("Assignatura afegida correctament.", "success")
         return redirect(url_for("assignatures.llista_assignatures"))
 
-    # GET: mostra el formulari amb les dades necessàries
     courses_list, grups_list, cicles, professors = carregar_dades_formulari()
     return render_template("assignatures/afegir.html",
                            courses=courses_list,
@@ -95,7 +97,6 @@ def add_assignatura_route():
                            cicles=cicles,
                            professors=professors)
 
-# Edita una assignatura existent (GET per mostrar el formulari, POST per actualitzar)
 @assignatures_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -106,24 +107,12 @@ def edit_assignatura(id):
         return redirect(url_for("assignatures.llista_assignatures"))
 
     if request.method == "POST":
-        nom = request.form.get("nom")
-        descripcio = request.form.get("descripcio")
+        nom = request.form.get("nom", "").strip()
+        descripcio = request.form.get("descripcio", "").strip()
         ra_names = request.form.getlist("ra_name[]")
         ra_percentages = request.form.getlist("ra_percentage[]")
 
-        # Validació del nom
-        if not nom or not validar_nom(nom):
-            flash("El nom de l'assignatura només pot contenir lletres i espais.", "error")
-            return redirect(url_for("assignatures.edit_assignatura", id=id))
-
-        ras = []
-        for name, perc in zip(ra_names, ra_percentages):
-            if name.strip():
-                try:
-                    percentage = float(perc)
-                except ValueError:
-                    percentage = 0.0
-                ras.append({"nom": name.strip(), "ponderacio": percentage})
+        ras = construir_ras(ra_names, ra_percentages)
 
         courses = request.form.getlist("courses[]")
         grups = request.form.getlist("grups[]")
@@ -131,18 +120,15 @@ def edit_assignatura(id):
         any_academic = request.form.get("any_academic")
         professor_ids = request.form.getlist("professor_ids[]")
 
-        if not nom or not courses or not grups or not cicle_id or not any_academic or not professor_ids:
-            flash("Tots els camps són obligatoris.", "error")
+        errors = validar_formulari_assignatura(nom, courses, grups, cicle_id, any_academic, professor_ids, ras)
+        if errors:
+            for error in errors:
+                flash(error, "error")
             return redirect(url_for("assignatures.edit_assignatura", id=id))
 
-        total = sum(ra["ponderacio"] for ra in ras)
-        if total != 100:
-            flash(f"La suma de les ponderacions dels RAs ha de ser 100%. Actualment suma: {total}%", "error")
-            return redirect(url_for("assignatures.edit_assignatura", id=id))
-
-        updated_data = {
-            "nom": nom.strip(),
-            "descripcio": descripcio.strip() if descripcio else "",
+        assignatura_actualitzada = {
+            "nom": nom,
+            "descripcio": descripcio,
             "ras": ras,
             "courses": courses,
             "grups": grups,
@@ -151,11 +137,10 @@ def edit_assignatura(id):
             "professor_ids": [ObjectId(pid) for pid in professor_ids]
         }
 
-        update_assignatura(id, updated_data)
+        update_assignatura(id, assignatura_actualitzada)
         flash("Assignatura actualitzada correctament.", "success")
         return redirect(url_for("assignatures.llista_assignatures"))
 
-    # GET: mostra el formulari d'edició amb les dades actuals
     courses_list, grups_list, cicles, professors = carregar_dades_formulari()
     return render_template("assignatures/edit.html",
                            assignatura=assignatura,
@@ -164,7 +149,6 @@ def edit_assignatura(id):
                            cicles=cicles,
                            professors=professors)
 
-# Elimina una assignatura a partir del seu identificador
 @assignatures_bp.route("/delete/<id>", methods=["POST"])
 @login_required
 @admin_required

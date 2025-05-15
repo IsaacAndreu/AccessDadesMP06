@@ -4,14 +4,25 @@ from dao.ras_dao import *
 
 ras_bp = Blueprint("ras", __name__)
 
-# -- Vista per llistar tots els RAs --
+def validar_ra_form(nom, ponderacio):
+    if not nom or not ponderacio:
+        return False, "Tots els camps són obligatoris."
+    try:
+        val = float(ponderacio)
+        if not (0 <= val <= 100):
+            return False, "La ponderació ha de ser un número entre 0 i 100."
+    except ValueError:
+        return False, "La ponderació ha de ser un número entre 0 i 100."
+    return True, val
+
+
 @ras_bp.route("/llista")
 @login_required
 def llista_ras():
     ras = get_all_ras()
     return render_template("ras/llista.html", ras=ras)
 
-# -- Afegir un RA --
+
 @ras_bp.route("/add", methods=["GET", "POST"])
 @login_required
 def add_ra_route():
@@ -19,25 +30,18 @@ def add_ra_route():
         nom = request.form.get("nom", "").strip()
         ponderacio = request.form.get("ponderacio", "").strip()
 
-        if not nom or not ponderacio:
-            flash("Tots els camps són obligatoris.", "error")
+        valid, result = validar_ra_form(nom, ponderacio)
+        if not valid:
+            flash(result, "error")
             return redirect(url_for("ras.add_ra_route"))
 
-        try:
-            ponderacio_val = float(ponderacio)
-            if not (0 <= ponderacio_val <= 100):
-                raise ValueError("Fora de rang")
-            add_ra(nom, ponderacio_val)
-        except ValueError:
-            flash("La ponderació ha de ser un número entre 0 i 100.", "error")
-            return redirect(url_for("ras.add_ra_route"))
-
+        add_ra(nom, result)
         flash("RA afegit correctament.", "success")
         return redirect(url_for("ras.llista_ras"))
 
     return render_template("ras/afegir.html")
 
-# -- Editar un RA --
+
 @ras_bp.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 def edit_ra(id):
@@ -50,25 +54,18 @@ def edit_ra(id):
         nom = request.form.get("nom", "").strip()
         ponderacio = request.form.get("ponderacio", "").strip()
 
-        if not nom or not ponderacio:
-            flash("Tots els camps són obligatoris.", "error")
+        valid, result = validar_ra_form(nom, ponderacio)
+        if not valid:
+            flash(result, "error")
             return redirect(url_for("ras.edit_ra", id=id))
 
-        try:
-            ponderacio_val = float(ponderacio)
-            if not (0 <= ponderacio_val <= 100):
-                raise ValueError("Fora de rang")
-            update_ra(id, nom, ponderacio_val)
-        except ValueError:
-            flash("La ponderació ha de ser un número entre 0 i 100.", "error")
-            return redirect(url_for("ras.edit_ra", id=id))
-
+        update_ra(id, nom, result)
         flash("RA actualitzat correctament.", "success")
         return redirect(url_for("ras.llista_ras"))
 
     return render_template("ras/edit.html", ra=ra)
 
-# -- Eliminar un RA --
+
 @ras_bp.route("/delete/<id>", methods=["POST"])
 @login_required
 def delete_ra_route(id):

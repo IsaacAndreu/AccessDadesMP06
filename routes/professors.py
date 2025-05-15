@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from extensions import login_required, admin_required, mongo
 from dao.professors_dao import *
-from dao.professors_dao import get_grups_dict
 from werkzeug.security import generate_password_hash
 from bson import ObjectId
 from werkzeug.utils import secure_filename
@@ -12,12 +11,32 @@ professors_bp = Blueprint("professors", __name__)
 
 # Funció per validar noms i cognoms (només lletres i espais)
 def validar_nom_cognom(nom):
-    # Comprova que només es facin servir lletres i espais
-    if not re.match("^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)*$", nom):
-        return False
-    return True
+    return bool(re.match(r"^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)*$", nom))
 
-# -- Vista principal del dashboard docent --
+
+def guardar_fitxer(fitxer, carpeta, extensions_permeses):
+    """Guarda un fitxer si és vàlid i retorna el nom del fitxer, o None."""
+    if fitxer and fitxer.filename:
+        filename = secure_filename(fitxer.filename)
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext not in extensions_permeses:
+            return None, f"Format no vàlid. Extensions permeses: {', '.join(extensions_permeses)}"
+        path = os.path.join("static", carpeta, filename)
+        fitxer.save(path)
+        return filename, None
+    return None, None
+
+
+def validar_camps_professor(nom, cognoms, email):
+    if not (nom and cognoms and email):
+        return False, "Nom, cognoms i email són obligatoris."
+    if not validar_nom_cognom(nom):
+        return False, "Nom invàlid. Només es permeten lletres i espais."
+    if not validar_nom_cognom(cognoms):
+        return False, "Cognoms invàlids. Només es permeten lletres i espais."
+    return True, None
+
+
 @professors_bp.route("/dashboard")
 @login_required
 def dashboard():
@@ -27,14 +46,14 @@ def dashboard():
     grups_dict = get_grups_dict()
     return render_template("professors/dashboard.html", assignatures=assignatures, cicles_dict=cicles_dict, grups_dict=grups_dict)
 
-# -- Llista de cursos --
-@professors_bp.route("/cursos", methods=["GET"])
+
+@professors_bp.route("/cursos")
 @login_required
 def llista_cursos():
     cursos = get_all_courses()
     return render_template("professors/llista_cursos.html", cursos=cursos)
 
-# -- Crear un curs nou --
+
 @professors_bp.route("/create_course", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -53,7 +72,7 @@ def create_course():
 
     return render_template("professors/create_course.html")
 
-# -- Editar un curs --
+
 @professors_bp.route("/cursos/<course_id>/edit", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -77,24 +96,27 @@ def edit_course(course_id):
 
     return render_template("professors/edit_course.html", course=course)
 
-# -- Eliminar un curs --
+
 @professors_bp.route("/cursos/<course_id>/delete", methods=["POST"])
 @login_required
 @admin_required
 def delete_course_route(course_id):
     result = delete_course(course_id)
-    flash("Curs eliminat correctament." if result.deleted_count > 0 else "No s'ha pogut eliminar el curs.", "success" if result.deleted_count > 0 else "error")
+    if result.deleted_count > 0:
+        flash("Curs eliminat correctament.", "success")
+    else:
+        flash("No s'ha pogut eliminar el curs.", "error")
     return redirect(url_for("professors.llista_cursos"))
 
-# -- Llista de professors (només admin) --
-@professors_bp.route("/list", methods=["GET"])
+
+@professors_bp.route("/list")
 @login_required
 @admin_required
 def llista_professors():
     professors = get_all_professors()
     return render_template("professors/llista_professors.html", professors=professors)
 
-# -- Afegir professor --
+
 @professors_bp.route("/add", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -104,17 +126,9 @@ def add_professor_route():
         cognoms = request.form.get("cognoms", "").strip()
         email = request.form.get("email", "").strip()
 
-        # Validar que els noms i cognoms només tinguin lletres
-        if not validar_nom_cognom(nom):
-            flash("Nom invàlid. Només es permeten lletres i espais.", "error")
-            return redirect(url_for("professors.add_professor_route"))
-
-        if not validar_nom_cognom(cognoms):
-            flash("Cognoms invàlids. Només es permeten lletres i espais.", "error")
-            return redirect(url_for("professors.add_professor_route"))
-
-        if not nom or not cognoms or not email:
-            flash("Nom, cognoms i email són obligatoris.", "error")
+        valid, error = validar_camps_professor(nom, cognoms, email)
+        if not valid:
+            flash(error, "error")
             return redirect(url_for("professors.add_professor_route"))
 
         add_professor(nom, cognoms, email)
@@ -123,7 +137,7 @@ def add_professor_route():
 
     return render_template("professors/add_professor.html")
 
-# -- Editar professor --
+
 @professors_bp.route("/edit/<prof_id>", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -138,17 +152,9 @@ def edit_professor(prof_id):
         cognoms = request.form.get("cognoms", "").strip()
         email = request.form.get("email", "").strip()
 
-        # Validar que els noms i cognoms només tinguin lletres
-        if not validar_nom_cognom(nom):
-            flash("Nom invàlid. Només es permeten lletres i espais.", "error")
-            return redirect(url_for("professors.edit_professor", prof_id=prof_id))
-
-        if not validar_nom_cognom(cognoms):
-            flash("Cognoms invàlids. Només es permeten lletres i espais.", "error")
-            return redirect(url_for("professors.edit_professor", prof_id=prof_id))
-
-        if not nom or not cognoms or not email:
-            flash("Tots els camps són obligatoris.", "error")
+        valid, error = validar_camps_professor(nom, cognoms, email)
+        if not valid:
+            flash(error, "error")
             return redirect(url_for("professors.edit_professor", prof_id=prof_id))
 
         update_professor(prof_id, nom, cognoms, email)
@@ -157,16 +163,19 @@ def edit_professor(prof_id):
 
     return render_template("professors/edit_professor.html", professor=professor)
 
-# -- Eliminar professor --
+
 @professors_bp.route("/delete/<prof_id>", methods=["POST"])
 @login_required
 @admin_required
 def delete_professor_route(prof_id):
     result = delete_professor(prof_id)
-    flash("Professor eliminat correctament." if result.deleted_count > 0 else "No s'ha pogut eliminar el professor.", "success" if result.deleted_count > 0 else "error")
+    if result.deleted_count > 0:
+        flash("Professor eliminat correctament.", "success")
+    else:
+        flash("No s'ha pogut eliminar el professor.", "error")
     return redirect(url_for("professors.llista_professors"))
 
-# -- Perfil del professor loguejat --
+
 @professors_bp.route("/perfil", methods=["GET", "POST"])
 @login_required
 def perfil():
@@ -181,47 +190,27 @@ def perfil():
         nova_password = request.form.get("nova_password")
         confirmar = request.form.get("confirmar")
 
-        # Validació de la contrasenya nova
-        if nova_password:
-            if nova_password != confirmar:
-                flash("Les contrasenyes no coincideixen.", "error")
-                return redirect(url_for("professors.perfil"))
-            hashed_password = generate_password_hash(nova_password)
-        else:
-            hashed_password = None
+        if nova_password and nova_password != confirmar:
+            flash("Les contrasenyes no coincideixen.", "error")
+            return redirect(url_for("professors.perfil"))
 
-        # Validació i guardat de la imatge
-        foto_filename = None
-        foto = request.files.get("foto_perfil")
-        if foto and foto.filename != "":
-            filename = secure_filename(foto.filename)
-            ext = filename.rsplit(".", 1)[-1].lower()
-            if ext not in {"png", "jpg", "jpeg", "gif"}:
-                flash("Format d'imatge no vàlid.", "error")
-                return redirect(url_for("professors.perfil"))
-            foto_path = os.path.join("static/uploads", filename)
-            foto.save(foto_path)
-            foto_filename = filename
+        hashed_password = generate_password_hash(nova_password) if nova_password else None
 
-        # Gestió de documents
-        nou_document = request.files.get("nou_document")
-        if nou_document and nou_document.filename != "":
-            doc_filename = secure_filename(nou_document.filename)
-            doc_ext = doc_filename.rsplit(".", 1)[-1].lower()
-            if doc_ext not in {"pdf", "doc", "docx", "png", "jpg", "jpeg"}:
-                flash("Format de document no vàlid.", "error")
-                return redirect(url_for("professors.perfil"))
-            doc_path = os.path.join("static/uploads", doc_filename)
-            nou_document.save(doc_path)
-            mongo.db.professors.update_one({"_id": ObjectId(professor_id)}, {"$addToSet": {"documents": doc_filename}})
+        foto, error = guardar_fitxer(request.files.get("foto_perfil"), "uploads", {"png", "jpg", "jpeg", "gif"})
+        if error:
+            flash(error, "error")
+            return redirect(url_for("professors.perfil"))
 
-        # Actualització del perfil
-        update_professor_perfil(
-            prof_id=professor_id,
-            dades={"nom": nom, "cognoms": cognoms, "telefon": telefon, "tema": tema},
-            nova_password=hashed_password,
-            foto_filename=foto_filename
-        )
+        nou_document, error = guardar_fitxer(request.files.get("nou_document"), "uploads", {"pdf", "doc", "docx", "png", "jpg", "jpeg"})
+        if error:
+            flash(error, "error")
+            return redirect(url_for("professors.perfil"))
+
+        if nou_document:
+            mongo.db.professors.update_one({"_id": ObjectId(professor_id)}, {"$addToSet": {"documents": nou_document}})
+
+        dades = {"nom": nom, "cognoms": cognoms, "telefon": telefon, "tema": tema}
+        update_professor_perfil(prof_id=professor_id, dades=dades, nova_password=hashed_password, foto_filename=foto)
 
         session["tema"] = tema
         flash("Perfil actualitzat correctament.", "success")
@@ -230,7 +219,7 @@ def perfil():
     assignatures = get_assignatures_by_teacher(professor_id)
     return render_template("professors/perfil.html", professor=professor, assignatures=assignatures)
 
-# -- Eliminar un document del perfil --
+
 @professors_bp.route("/perfil/eliminar_document", methods=["POST"])
 @login_required
 def delete_document():
@@ -241,10 +230,7 @@ def delete_document():
         flash("Cap document indicat per eliminar.", "error")
         return redirect(url_for("professors.perfil"))
 
-    result = mongo.db.professors.update_one(
-        {"_id": ObjectId(professor_id)},
-        {"$pull": {"documents": doc_name}}
-    )
+    result = mongo.db.professors.update_one({"_id": ObjectId(professor_id)}, {"$pull": {"documents": doc_name}})
 
     file_path = os.path.join("static/uploads", doc_name)
     if os.path.exists(file_path):
@@ -253,5 +239,8 @@ def delete_document():
         except Exception as e:
             flash(f"Error eliminant el fitxer: {e}", "error")
 
-    flash("Document eliminat correctament." if result.modified_count > 0 else "No s'ha pogut eliminar el document.", "success" if result.modified_count > 0 else "error")
+    if result.modified_count > 0:
+        flash("Document eliminat correctament.", "success")
+    else:
+        flash("No s'ha pogut eliminar el document.", "error")
     return redirect(url_for("professors.perfil"))

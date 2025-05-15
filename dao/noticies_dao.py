@@ -1,5 +1,6 @@
 from extensions import mongo
 from bson.objectid import ObjectId
+from sqlalchemy.orm import joinedload
 
 # Retorna totes les notícies ordenades per data de forma descendent (més recents primer)
 def get_all_noticies():

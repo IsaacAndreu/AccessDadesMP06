@@ -1,6 +1,6 @@
 from extensions import db
 from models import Grup
-
+from sqlalchemy.orm import joinedload
 # Retorna tots els grups disponibles
 def get_grups():
     return Grup.query.all()
