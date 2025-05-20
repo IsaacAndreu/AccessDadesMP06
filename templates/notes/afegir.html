@@ -6,63 +6,61 @@
   <div>
     <label for="alumne_id">Alumne:</label>
     <select name="alumne_id" id="alumne_id" required>
-      {% for alumne in alumnes %}
-        <option value="{{ alumne._id }}">{{ alumne.nom }} {{ alumne.cognoms }}</option>
+      {% for a in alumnes %}
+        <option value="{{ a.id }}">{{ a.nom }} {{ a.cognoms }}</option>
       {% endfor %}
     </select>
   </div>
-
   <div>
     <label for="assignatura_id">Assignatura:</label>
     <select name="assignatura_id" id="assignatura_id" required onchange="filtraRAs()">
       <option value="">-- Selecciona --</option>
-      {% for assignatura in assignatures %}
-        <option value="{{ assignatura._id }}">{{ assignatura.nom }}</option>
-      {% endfor %}
     </select>
   </div>
-
   <div>
     <label for="ra_id">Resultat d'Aprenentatge (RA):</label>
     <select name="ra_id" id="ra_id" required>
       <option value="">-- Selecciona assignatura primer --</option>
     </select>
   </div>
-
   <div>
     <label for="nota">Nota:</label>
     <input type="number" name="nota" id="nota" step="0.01" min="0" max="10" required>
   </div>
-
   <button type="submit" class="btn">Afegir</button>
 </form>
 
 <script>
-  const assignatures = {{ assignatures | tojson | safe }};
-  const raSelect = document.getElementById('ra_id');
+  // Recibimos el JSON ya limpio de ObjectId
+  const assignatures = {{ assignatures_json | safe }};
   const assignaturaSelect = document.getElementById('assignatura_id');
+  const raSelect = document.getElementById('ra_id');
+
+  // Rellenamos el select de asignaturas
+  assignatures.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a._id;
+    opt.textContent = a.nom;
+    assignaturaSelect.appendChild(opt);
+  });
 
   function filtraRAs() {
-    const assignaturaId = assignaturaSelect.value;
+    const selId = assignaturaSelect.value;
     raSelect.innerHTML = '';
-
-    const assignatura = assignatures.find(a => a._id === assignaturaId);
-
-    if (assignatura && assignatura.ras.length > 0) {
-      assignatura.ras.forEach(ra => {
-        const option = document.createElement('option');
-        option.value = ra.nom;
-        option.textContent = ra.nom + ' (' + ra.ponderacio + '%)';
-        raSelect.appendChild(option);
+    const a = assignatures.find(x => x._id === selId);
+    if (a && a.ras.length) {
+      a.ras.forEach(ra => {
+        const o = document.createElement('option');
+        o.value = ra.nom;
+        o.textContent = `${ra.nom} (${ra.ponderacio}%)`;
+        raSelect.appendChild(o);
       });
     } else {
-      const option = document.createElement('option');
-      option.textContent = 'Cap RA trobat per aquesta assignatura';
-      option.disabled = true;
-      option.selected = true;
-      raSelect.appendChild(option);
+      const o = document.createElement('option');
+      o.textContent = 'Cap RA trobat';
+      o.disabled = true;
+      raSelect.appendChild(o);
     }
   }
 </script>
-
 {% endblock %}

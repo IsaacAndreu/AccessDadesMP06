@@ -21,14 +21,15 @@
       {% for a in assignatures %}
       <tr>
         <td>{{ a.nom }}</td>
-        <td>{{ cicles_dict.get(a.cicle_id|string, 'N/D') }}</td>
+        <td>{{ cicles_dict.get(a.cicle_id, 'N/D') }}</td>
         <td>
-          {% set noms_grups = [] %}
-          {% for grup_id in a.grups %}
-            {% set nom = grups_dict[grup_id|string] if grups_dict[grup_id|string] is defined else 'N/D' %}
-            {% set _ = noms_grups.append(nom) %}
-          {% endfor %}
-          {{ noms_grups | join(', ') }}
+          {% if a.grups %}
+            {% for grup_id in a.grups %}
+              {{ grups_dict.get(grup_id, 'N/D') }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          {% else %}
+            N/D
+          {% endif %}
         </td>
         <td>
           {% if a.curs %}
@@ -46,7 +47,7 @@
         <td>
           <a href="{{ url_for('assignatures.edit_assignatura', id=a._id) }}" class="btn-edit">Editar</a>
           <form action="{{ url_for('assignatures.delete_assignatura', id=a._id) }}" method="POST" style="display:inline;">
-            <button class="btn-delete">Eliminar</button>
+            <button class="btn-delete" onclick="return confirm('Segur que vols eliminar aquesta assignatura?')">Eliminar</button>
           </form>
         </td>
       </tr>

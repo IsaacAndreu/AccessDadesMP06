@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from extensions import login_required, admin_required, mongo
 from dao.professors_dao import *
+from dao.oracle_academics_dao import get_cicles_oracle, get_grups_oracle
 from werkzeug.security import generate_password_hash
 from bson import ObjectId
 from werkzeug.utils import secure_filename
@@ -40,12 +41,42 @@ def validar_camps_professor(nom, cognoms, email):
 @professors_bp.route("/dashboard")
 @login_required
 def dashboard():
-    teacher_id = session["teacher_id"]
+    teacher_id   = session["teacher_id"]
     assignatures = get_assignatures_by_teacher(teacher_id)
-    cicles_dict = get_cicles_dict()
-    grups_dict = get_grups_dict()
-    return render_template("professors/dashboard.html", assignatures=assignatures, cicles_dict=cicles_dict, grups_dict=grups_dict)
 
+    for a in assignatures:
+        # Convertim cicle_id a int o None
+        try:
+            a["cicle_id"] = int(a.get("cicle_id", None))
+        except (ValueError, TypeError):
+            a["cicle_id"] = None
+
+        # Prenem la llista original de grups (pot venir com a strings)
+        raw_grups = a.get("grups", [])
+
+        # Convertem-la a ints, descartant valors invàlids
+        clean_grups = []
+        for g in raw_grups:
+            try:
+                clean_grups.append(int(g))
+            except (ValueError, TypeError):
+                continue
+
+        # Finalment, assignem la llista neta
+        a["grups"] = clean_grups
+
+    # Preparem els diccionaris per la plantilla
+    cicles = get_cicles_oracle()
+    grups  = get_grups_oracle()
+    cicles_dict = {c.id: c.nom for c in cicles}
+    grups_dict  = {g.id: g.nom for g in grups}
+
+    return render_template(
+        "professors/dashboard.html",
+        assignatures=assignatures,
+        cicles_dict=cicles_dict,
+        grups_dict=grups_dict
+    )
 
 @professors_bp.route("/cursos")
 @login_required

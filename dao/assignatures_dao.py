@@ -1,5 +1,8 @@
 from extensions import mongo
 from bson.objectid import ObjectId
+from dao.oracle_academics_dao import get_cicles_oracle, get_grups_oracle
+from dao.oracle_academics_dao import get_grups_oracle as get_grups, \
+                                     get_cicles_oracle as get_cicles
 
 # Obtenir totes les assignatures disponibles
 def get_assignatures():
@@ -16,19 +19,16 @@ def get_courses_dict():
 def get_courses():
     return list(mongo.db.courses.find())
 
-# Obtenir tots els grups. Si no n'hi ha, se n'inicialitzen uns per defecte
+# Obtenir tots els grups formatius des de l’Oracle
 def get_grups():
-    grups = list(mongo.db.grups.find())
-    if not grups:
-        mongo.db.grups.insert_many([{"nom": "A"}, {"nom": "B"}])
-        grups = list(mongo.db.grups.find())
-    return grups
+    return get_grups_oracle()
 
-# Obtenir tots els cicles formatius
+# Obtenir tots els cicles formatius des de l’Oracle
 def get_cicles():
-    return list(mongo.db.cicles.find())
+    return get_cicles_oracle()
 
 # Obtenir tots els professors
+# (segueix agafant-los de Mongo, o ajusta si vols passar-los també d'Oracle)
 def get_professors():
     return list(mongo.db.professors.find())
 
@@ -59,3 +59,11 @@ def delete_assignatura_by_id(assignatura_id):
         return mongo.db.assignatures.delete_one({"_id": ObjectId(assignatura_id)})
     except Exception:
         return None
+
+# Obtenir assignatures amb els seus RAs (per select)
+def get_assignatures_amb_ras():
+    assignatures = list(get_assignatures())
+    for a in assignatures:
+        if "ras" not in a:
+            a["ras"] = []  # Assegurem la clau per evitar errors al frontend
+    return assignatures

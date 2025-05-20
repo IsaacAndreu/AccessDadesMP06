@@ -4,29 +4,31 @@
 {% block content %}
 <h2>Qualificacions</h2>
 
-<div class="top-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-  <!-- Botó afegir -->
+<div class="top-actions" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;">
   <a href="{{ url_for('notes.add_nota_route') }}" class="btn">Afegir Nota</a>
 
-  <!-- Cercador + Informe -->
-  <form method="GET" action="{{ url_for('notes.llista_notes') }}" style="display: flex; gap: 10px; align-items: center;">
-  <select name="search" style="padding: 8px; width: 250px; border-radius: 5px; border: 1px solid #ccc;">
-    <option value="">Selecciona un alumne</option>
-    {% for id, nom in alumnes_dict.items() %}
-      <option value="{{ nom }}" {% if request.args.get('search') == nom %}selected{% endif %}>{{ nom }}</option>
-    {% endfor %}
-  </select>
-  <button type="submit" class="btn">Buscar</button>
+  <form method="GET" action="{{ url_for('notes.llista_notes') }}"
+        style="display:flex;gap:.5rem;align-items:center;">
+    <select name="search">
+      <option value="">Tots els alumnes</option>
+      {% for id, nom in alumnes_dict.items() %}
+        <option value="{{ id }}" {% if search_id == id %}selected{% endif %}>
+          {{ nom }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn">Filtrar</button>
+  </form>
 
-  {% if notes and notes|length > 0 %}
-    <a href="{{ url_for('notes.informe_alumne', alumne_id=notes[0].alumne_id|string) }}" class="btn">Veure Informe</a>
+  {# Quan hi ha filtre, enllacem a la vista HTML de l'informe #}
+  {% if search_id %}
+    <a href="{{ url_for('notes.informe_alumne', alumne_id=search_id) }}" class="btn">
+      📄 Veure Informe
+    </a>
   {% endif %}
-</form>
-
 </div>
 
 {% if notes %}
-<div class="table-container">
   <table class="styled-table">
     <thead>
       <tr>
@@ -39,27 +41,23 @@
     </thead>
     <tbody>
       {% for nota in notes %}
-      <tr>
-        <td>{{ alumnes_dict.get(nota.alumne_id|string, 'Alumne no trobat') }}</td>
-        <td>{{ assignatures_dict.get(nota.assignatura_id|string, 'Assignatura no trobada') }}</td>
-        <td>{{ nota.ra_id }}</td>
-        <td>{{ nota.nota }}</td>
-        <td>
-          <div class="action-buttons">
-            <a href="{{ url_for('notes.edit_nota', id=nota._id) }}" class="btn-edit">Editar</a>
-            <form method="POST" action="{{ url_for('notes.delete_nota_route', id=nota._id) }}">
-              <button type="submit" class="btn-delete" onclick="return confirm('Segur que vols eliminar aquesta nota?');">
-                Eliminar
-              </button>
+        <tr>
+          <td>{{ alumnes_dict.get(nota.alumne_id, 'Alumne no trobat') }}</td>
+          <td>{{ assignatures_dict.get(nota.assignatura_id, 'Assignatura no trobada') }}</td>
+          <td>{{ nota.ra_id }}</td>
+          <td>{{ nota.nota }}</td>
+          <td>
+            <a href="{{ url_for('notes.edit_nota', id=nota._id) }}" class="btn">🖉</a>
+            <form method="POST" action="{{ url_for('notes.delete_nota_route', id=nota._id) }}"
+                  style="display:inline;">
+              <button type="submit" onclick="return confirm('Segur?')">🗑️</button>
             </form>
-          </div>
-        </td>
-      </tr>
+          </td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>
-</div>
 {% else %}
-  <p>No hi ha qualificacions registrades.</p>
+  <p>No hi ha qualificacions per mostrar.</p>
 {% endif %}
 {% endblock %}

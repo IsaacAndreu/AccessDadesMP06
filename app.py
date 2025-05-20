@@ -6,7 +6,9 @@ from routes.grups import grups_bp
 from werkzeug.security import generate_password_hash
 from routes.esdeveniments import esdeveniments_bp
 from utils.create_oracle_procedures import crear_procediments_oracle  # Importem la funció
-
+from flask import Flask
+from extensions import mongo, db, babel
+from routes.notes import notes_bp
 def crear_admin_per_defecte():
     """
     Funció per crear un usuari administrador per defecte si no existeix ja a la base de dades.
@@ -45,7 +47,7 @@ def create_app():
 
     # Crear les taules i procediments si calen
     with app.app_context():
-        db.create_all()  # Crear les taules a la base de dades si no existeixen
+        #db.create_all()  # Crear les taules a la base de dades si no existeixen
 
         # Crear procediments Oracle
         crear_procediments_oracle()  # Crea els procediments necessaris per Oracle

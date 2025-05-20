@@ -16,8 +16,14 @@ noticies_bp = Blueprint("noticies", __name__, url_prefix="/noticies")
 
 
 def validar_text_simple(valor):
-    """Validar que el text només contingui lletres (incloent accents) i espais."""
-    return bool(re.match(r"^[A-Za-zÀ-ÿ\s]+$", valor))
+    """
+    Validar que el text només contingui:
+      - lletres (incloent accents)
+      - espais
+      - cometes simples (')
+    """
+    patró = r"^[A-Za-zÀ-ÿ'\s]+$"
+    return bool(re.match(patró, valor))
 
 
 def guardar_imatge(imatge):

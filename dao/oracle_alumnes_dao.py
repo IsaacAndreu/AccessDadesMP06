@@ -99,3 +99,15 @@ def delete_alumne_by_id(id):
     if alumne:
         db.session.delete(alumne)
         db.session.commit()
+# Retorna un diccionari amb els alumnes: {id: nom complet} (per usar a notes)
+def get_alumnes_dict_oracle():
+    alumnes = get_alumnes_filtrats(None, None)
+    return {str(a.id): f"{a.nom} {a.cognoms}" for a in alumnes}
+
+# Cerca alumnes per nom o cognoms (bàsic, per al cercador de notes)
+def get_alumnes_by_nom_oracle(search_query):
+    query = db.session.query(Alumne).filter(
+        (Alumne.nom.ilike(f"%{search_query}%")) |
+        (Alumne.cognoms.ilike(f"%{search_query}%"))
+    )
+    return query.all()

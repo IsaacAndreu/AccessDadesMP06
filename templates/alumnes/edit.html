@@ -2,43 +2,60 @@
 {% block title %}Editar Alumne{% endblock %}
 {% block content %}
 <h2>Editar Alumne</h2>
-<form method="POST" action="{{ url_for('alumnes.edit_alumne', id=alumne._id) }}">
+
+<!-- Missatges flash -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flashes">
+      {% for category, msg in messages %}
+        <li class="{{ category }}">{{ msg }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<form method="POST" action="{{ url_for('alumnes.edit_alumne', id=alumne.id) }}">
   <div>
     <label for="nom">Nom:</label>
-    <input type="text" name="nom" id="nom" value="{{ alumne.nom }}" required>
+    <input type="text" name="nom" id="nom" value="{{ alumne.nom or '' }}" required>
   </div>
+
   <div>
     <label for="cognoms">Cognoms:</label>
-    <input type="text" name="cognoms" id="cognoms" value="{{ alumne.cognoms }}" required>
+    <input type="text" name="cognoms" id="cognoms" value="{{ alumne.cognoms or '' }}" required>
   </div>
+
   <div>
     <label for="email">Email:</label>
-    <input type="email" name="email" id="email" value="{{ alumne.email }}">
+    <input type="email" name="email" id="email" value="{{ alumne.email or '' }}">
   </div>
+
   <!-- Desplegable per seleccionar el grup -->
   <div>
-    <label for="grup">Grup:</label>
-    <select name="grup" id="grup" required>
+    <label for="grup_id">Grup:</label>
+    <select name="grup_id" id="grup_id" required>
       <option value="">-- Selecciona un grup --</option>
       {% for g in grups %}
-        <option value="{{ g._id }}" {% if alumne.grup == g._id|string %}selected{% endif %}>
+        <option value="{{ g.id }}" {% if g.id == alumne.grup_id %}selected{% endif %}>
           {{ g.nom }}
         </option>
       {% endfor %}
     </select>
   </div>
+
   <!-- Desplegable per seleccionar el cicle -->
   <div>
     <label for="cicle_id">Cicle:</label>
     <select name="cicle_id" id="cicle_id" required>
       <option value="">-- Selecciona un cicle --</option>
-      {% for cicle in cicles %}
-        <option value="{{ cicle._id }}" {% if alumne.cicle_id|string == cicle._id|string %}selected{% endif %}>
-          {{ cicle.nom }}
+      {% for c in cicles %}
+        <option value="{{ c.id }}" {% if c.id == alumne.cicle_id %}selected{% endif %}>
+          {{ c.nom }}
         </option>
       {% endfor %}
     </select>
   </div>
+
   <!-- Desplegable per seleccionar el curs -->
   <div>
     <label for="curs">Curs:</label>
@@ -48,6 +65,7 @@
       <option value="2n" {% if alumne.curs == '2n' %}selected{% endif %}>2n</option>
     </select>
   </div>
+
   <button type="submit">Guardar Canvis</button>
 </form>
 {% endblock %}

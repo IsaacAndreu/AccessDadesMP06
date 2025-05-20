@@ -11,9 +11,11 @@
     <p><strong>Data d’emissió:</strong> {{ current_date }}</p>
   </div>
 
-  {% if not pdf %}
-    <a href="{{ url_for('notes.exportar_informe_pdf', alumne_id=alumne._id) }}" class="btn">📄 Descarregar PDF</a>
-  {% endif %}
+  <!-- Botons per PDF i per veure HTML del PDF -->
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="{{ url_for('notes.exportar_informe_pdf', alumne_id=alumne.id) }}" class="btn">📄 Descarregar PDF</a>
+    <a href="{{ url_for('notes.informe_alumne', alumne_id=alumne.id, pdf=True) }}" class="btn">👁️ Veure HTML de PDF</a>
+  </div>
 </div>
 
 {% if informe %}

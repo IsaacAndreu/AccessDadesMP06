@@ -1,5 +1,6 @@
 from extensions import mongo
 from bson.objectid import ObjectId
+from dao.db_selector import get_db_connection, ORACLE
 
 # Obté totes les notes registrades
 def get_all_notes():
@@ -11,7 +12,16 @@ def get_notes_by_alumnes_ids(alumnes_ids):
 
 # Retorna un diccionari amb els alumnes: {id: nom complet}
 def get_alumnes_dict():
-    return {str(a["_id"]): f'{a["nom"]} {a["cognoms"]}' for a in mongo.db.alumnes.find()}
+    """
+    Retorna un diccionari amb id (com a string) → nom complet
+    Funciona tant amb Mongo (_id) com amb Oracle (id enter).
+    """
+    try:
+        from dao.oracle_alumnes_dao import get_alumnes_filtrats
+        alumnes = get_alumnes_filtrats(None, None)
+        return {str(a.id): f"{a.nom} {a.cognoms}" for a in alumnes}
+    except ImportError:
+        return {str(a["_id"]): f'{a["nom"]} {a["cognoms"]}' for a in mongo.db.alumnes.find()}
 
 # Diccionari amb les assignatures: {id: nom}
 def get_assignatures_dict():
@@ -81,8 +91,16 @@ def delete_nota_by_id(nota_id):
     return mongo.db.notes.delete_one({"_id": ObjectId(nota_id)})
 
 # Obté totes les notes d’un alumne específic
+# Obté totes les notes d’un alumne específic (ID numèric)
 def get_notes_by_alumne(alumne_id):
-    return list(mongo.db.notes.find({"alumne_id": ObjectId(alumne_id)}))
+    """
+    Retorna totes les notes d’un alumne identificat pel seu ID numèric.
+    """
+    try:
+        student_id = int(alumne_id)
+    except (TypeError, ValueError):
+        raise ValueError(f"Alumne_id ha de ser un enter vàlid, s’ha passat: {alumne_id!r}")
+    return list(mongo.db.notes.find({"alumne_id": student_id}))
 
 # Retorna les dades d’un alumne pel seu ID
 def get_alumne_by_id(alumne_id):
@@ -99,7 +117,6 @@ def get_informe_per_alumne(alumne_id):
         ra_nom = nota["ra_id"]
         valor = nota["nota"]
 
-        # Agrupa per assignatura
         dades_assignatura = informe.setdefault(assignatura_id, {
             "assignatura_nom": assignatures_dict.get(assignatura_id, {}).get("nom", "Desconeguda"),
             "notes_ra": [],
@@ -107,7 +124,6 @@ def get_informe_per_alumne(alumne_id):
         })
         dades_assignatura["notes_ra"].append({"ra_nom": ra_nom, "nota": valor})
 
-    # Calcula la mitjana ponderada per assignatura
     for assignatura_id, dades in informe.items():
         assignatura = assignatures_dict.get(assignatura_id)
         ras = assignatura.get("ras", []) if assignatura else []
