@@ -1,0 +1,5 @@
+SECRET_KEY=UnaClauSecretaQualsevol
+MONGO_URI=mongodb://127.0.0.1:27017/centreEducatiuDB
+ORACLE_USER=usuari_oracle
+ORACLE_PASSWORD=contrasenya_oracle
+ORACLE_DSN=host:port/service_name   # Exemple: localhost:1521/XE

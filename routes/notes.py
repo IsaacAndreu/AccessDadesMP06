@@ -114,6 +114,7 @@ def edit_nota(id):
     if not nota:
         flash("Nota no trobada.", "error")
         return redirect(url_for("notes.llista_notes"))
+
     if request.method == "POST":
         nou_valor = request.form.get("nota")
         nou_ra    = request.form.get("ra_id")
@@ -126,18 +127,18 @@ def edit_nota(id):
         flash("Nota actualitzada correctament.", "success")
         return redirect(url_for("notes.llista_notes"))
 
+    # Convertim els ObjectId a str
     for camp in ["_id", "alumne_id", "assignatura_id"]:
         nota[camp] = str(nota[camp])
 
-    alumne     = get_alumne_by_id(int(nota["alumne_id"]))
-    assignatura= get_assignatura_by_id(nota["assignatura_id"])
+    alumne      = get_alumne_by_id(int(nota["alumne_id"]))
+    assignatura = get_assignatura_by_id(nota["assignatura_id"])
 
     nota["alumne_nom"]      = f"{alumne.nom} {alumne.cognoms}" if alumne else "Alumne desconegut"
-    nota["assignatura_nom"] = assignatura.nom if assignatura else "Assignatura desconeguda"
+    nota["assignatura_nom"] = assignatura.get("nom", "Assignatura desconeguda")
     nota["ra_nom"]          = nota.get("ra_id", "RA desconegut")
 
     return render_template("notes/edit.html", nota=nota)
-
 
 @notes_bp.route("/delete/<id>", methods=["POST"])
 @login_required

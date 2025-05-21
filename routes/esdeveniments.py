@@ -6,8 +6,15 @@ from bson.objectid import ObjectId
 esdeveniments_bp = Blueprint("esdeveniments", __name__, url_prefix="/esdeveniments")
 
 def validar_titol(cadena):
-    """Valida que el títol només contingui lletres, accents i espais."""
-    return bool(re.match(r"^[A-Za-zÀ-ÿ\s]+$", cadena))
+    """
+    Valida que el títol només contingui:
+      - lletres (incloent accents)
+      - dígits (0–9)
+      - espais
+      - apòstrofs (')
+    """
+    patro = r"^[A-Za-zÀ-ÿ0-9'\s]+$"
+    return bool(re.match(patro, cadena))
 
 def validar_dades_esdeveniment(titol, inici):
     """Valida les dades essencials d'un esdeveniment, retorna (ok, missatge)."""

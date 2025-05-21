@@ -14,9 +14,15 @@ professors_bp = Blueprint("professors", __name__)
 def validar_nom_cognom(nom):
     return bool(re.match(r"^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)*$", nom))
 
+# Nova funció per validar el telèfon (només dígits)
+def validar_telefon(telefon):
+    """
+    Només permet dígits (i cadena buida si és opcional).
+    """
+    return bool(re.fullmatch(r"\d*", telefon))
 
 def guardar_fitxer(fitxer, carpeta, extensions_permeses):
-    """Guarda un fitxer si és vàlid i retorna el nom del fitxer, o None."""
+    """Guarda un fitxer si és vàlid i retorna el nom del fitxer, o (None, error)."""
     if fitxer and fitxer.filename:
         filename = secure_filename(fitxer.filename)
         ext = filename.rsplit(".", 1)[-1].lower()
@@ -26,7 +32,6 @@ def guardar_fitxer(fitxer, carpeta, extensions_permeses):
         fitxer.save(path)
         return filename, None
     return None, None
-
 
 def validar_camps_professor(nom, cognoms, email):
     if not (nom and cognoms and email):
@@ -77,6 +82,7 @@ def dashboard():
         cicles_dict=cicles_dict,
         grups_dict=grups_dict
     )
+
 
 @professors_bp.route("/cursos")
 @login_required
@@ -214,12 +220,17 @@ def perfil():
     professor = get_professor_by_id(professor_id)
 
     if request.method == "POST":
-        nom = request.form.get("nom", "").strip()
-        cognoms = request.form.get("cognoms", "").strip()
-        telefon = request.form.get("telefon", "").strip()
-        tema = request.form.get("tema", "").strip()
+        nom          = request.form.get("nom", "").strip()
+        cognoms      = request.form.get("cognoms", "").strip()
+        telefon      = request.form.get("telefon", "").strip()
+        tema         = request.form.get("tema", "").strip()
         nova_password = request.form.get("nova_password")
-        confirmar = request.form.get("confirmar")
+        confirmar     = request.form.get("confirmar")
+
+        # Validem el telèfon: només dígits
+        if not validar_telefon(telefon):
+            flash("El telèfon només pot contenir números.", "error")
+            return redirect(url_for("professors.perfil"))
 
         if nova_password and nova_password != confirmar:
             flash("Les contrasenyes no coincideixen.", "error")
@@ -227,41 +238,66 @@ def perfil():
 
         hashed_password = generate_password_hash(nova_password) if nova_password else None
 
-        foto, error = guardar_fitxer(request.files.get("foto_perfil"), "uploads", {"png", "jpg", "jpeg", "gif"})
+        # Pujar foto de perfil
+        foto, error = guardar_fitxer(
+            request.files.get("foto_perfil"),
+            "uploads",
+            {"png", "jpg", "jpeg", "gif"}
+        )
         if error:
             flash(error, "error")
             return redirect(url_for("professors.perfil"))
 
-        nou_document, error = guardar_fitxer(request.files.get("nou_document"), "uploads", {"pdf", "doc", "docx", "png", "jpg", "jpeg"})
+        # Pujar nou document (si n'hi ha)
+        nou_document, error = guardar_fitxer(
+            request.files.get("nou_document"),
+            "uploads",
+            {"pdf", "doc", "docx", "png", "jpg", "jpeg"}
+        )
         if error:
             flash(error, "error")
             return redirect(url_for("professors.perfil"))
-
         if nou_document:
-            mongo.db.professors.update_one({"_id": ObjectId(professor_id)}, {"$addToSet": {"documents": nou_document}})
+            mongo.db.professors.update_one(
+                {"_id": ObjectId(professor_id)},
+                {"$addToSet": {"documents": nou_document}}
+            )
 
+        # Actualitzem les dades restants
         dades = {"nom": nom, "cognoms": cognoms, "telefon": telefon, "tema": tema}
-        update_professor_perfil(prof_id=professor_id, dades=dades, nova_password=hashed_password, foto_filename=foto)
+        update_professor_perfil(
+            prof_id=professor_id,
+            dades=dades,
+            nova_password=hashed_password,
+            foto_filename=foto
+        )
 
         session["tema"] = tema
         flash("Perfil actualitzat correctament.", "success")
         return redirect(url_for("professors.perfil"))
 
     assignatures = get_assignatures_by_teacher(professor_id)
-    return render_template("professors/perfil.html", professor=professor, assignatures=assignatures)
+    return render_template(
+        "professors/perfil.html",
+        professor=professor,
+        assignatures=assignatures
+    )
 
 
 @professors_bp.route("/perfil/eliminar_document", methods=["POST"])
 @login_required
 def delete_document():
-    doc_name = request.form.get("doc_name")
+    doc_name    = request.form.get("doc_name")
     professor_id = session["teacher_id"]
 
     if not doc_name:
         flash("Cap document indicat per eliminar.", "error")
         return redirect(url_for("professors.perfil"))
 
-    result = mongo.db.professors.update_one({"_id": ObjectId(professor_id)}, {"$pull": {"documents": doc_name}})
+    result = mongo.db.professors.update_one(
+        {"_id": ObjectId(professor_id)},
+        {"$pull": {"documents": doc_name}}
+    )
 
     file_path = os.path.join("static/uploads", doc_name)
     if os.path.exists(file_path):

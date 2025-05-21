@@ -47,7 +47,7 @@ def create_app():
 
     # Crear les taules i procediments si calen
     with app.app_context():
-        #db.create_all()  # Crear les taules a la base de dades si no existeixen
+        db.create_all()  # Crear les taules a la base de dades si no existeixen
 
         # Crear procediments Oracle
         crear_procediments_oracle()  # Crea els procediments necessaris per Oracle
